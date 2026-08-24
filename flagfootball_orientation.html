@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>플래그풋볼 오리엔테이션</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ===============================================
+   설정: 아래 VIDEO_URL 만 바꾸면 영상 슬라이드에 유튜브가 뜹니다.
+   (script 맨 위 const VIDEO_URL 참고)
+   조작: → / Space / 클릭 = 다음,  ← = 이전,  N = 교사 메모,  F = 전체화면,  R = 애니메이션 다시
+   =============================================== */
+:root{
+  --turf:#17422A; --turf2:#1F5A38; --chalk:#F4F1E6; --flag:#FFC72C; --red:#E5322D;
+  --ball:#8B4A2B; --ink:#0D2418; --muted:#B9C9BF; --sky:#EAF2FF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--turf);color:var(--chalk);font-family:'Noto Sans KR',system-ui,sans-serif;overflow:hidden}
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;display:none;padding:5vh 7vw;flex-direction:column;justify-content:center}
+.slide.active{display:flex;animation:in .45s ease}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.eyebrow{font-size:clamp(14px,1.6vw,22px);letter-spacing:.18em;color:var(--flag);font-weight:700;margin-bottom:1.2vh;text-transform:uppercase}
+h1{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(44px,7.5vw,120px);line-height:1.02;letter-spacing:-.01em}
+h2{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(34px,5vw,76px);line-height:1.08;margin-bottom:3vh}
+p.lead{font-size:clamp(18px,2.3vw,34px);line-height:1.5;max-width:26ch}
+.yellow{color:var(--flag)} .redt{color:var(--red)}
+.row{display:flex;gap:5vw;align-items:center}
+.col{flex:1;min-width:0}
+.big{font-family:'Black Han Sans',sans-serif;font-size:clamp(40px,9vw,150px);line-height:1}
+.grid{display:grid;gap:2vw}
+.card{background:rgba(244,241,230,.07);border:2px solid rgba(244,241,230,.18);border-radius:18px;padding:2.4vh 2vw}
+.card h3{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(22px,2.8vw,44px);margin-bottom:.6vh}
+.card p{font-size:clamp(14px,1.5vw,22px);line-height:1.45;color:var(--muted)}
+.num{font-family:'Black Han Sans',sans-serif;color:var(--flag);font-size:clamp(28px,4vw,60px);line-height:1}
+.chip{display:inline-block;background:var(--flag);color:var(--ink);font-weight:700;border-radius:999px;padding:.35em 1em;font-size:clamp(14px,1.6vw,24px);margin:.3em .3em .3em 0}
+.chip.red{background:var(--red);color:#fff}
+.chip.ghost{background:transparent;border:2px solid var(--chalk);color:var(--chalk)}
+svg{width:100%;height:auto;display:block}
+.svgwrap{background:var(--turf2);border-radius:18px;padding:1.2vw;box-shadow:inset 0 0 0 2px rgba(244,241,230,.12)}
+.caption{margin-top:1.2vh;font-size:clamp(13px,1.4vw,20px);color:var(--muted)}
+.field-txt{font-family:'Black Han Sans',sans-serif;fill:var(--chalk)}
+/* nav */
+.hud{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;font-size:13px;color:rgba(244,241,230,.55);pointer-events:none}
+.dots{display:flex;gap:6px;pointer-events:auto}
+.dots span{width:9px;height:9px;border-radius:50%;background:rgba(244,241,230,.25);cursor:pointer}
+.dots span.on{background:var(--flag)}
+.notes{position:fixed;right:0;top:0;bottom:0;width:min(420px,40vw);background:#0D2418;color:#DDE6DF;padding:24px;font-size:15px;line-height:1.6;transform:translateX(100%);transition:transform .25s;overflow:auto;border-left:3px solid var(--flag);z-index:5}
+.notes.open{transform:none}
+.notes h4{color:var(--flag);margin-bottom:8px;font-size:13px;letter-spacing:.15em}
+.notes ul{padding-left:18px} .notes li{margin-bottom:8px}
+.btn{position:fixed;top:14px;right:14px;background:rgba(0,0,0,.35);border:1px solid rgba(244,241,230,.3);color:var(--chalk);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;z-index:6}
+/* flag wave on title */
+.wave{animation:wave 1.6s ease-in-out infinite;transform-origin:left center}
+@keyframes wave{0%,100%{transform:skewY(0deg)}50%{transform:skewY(-6deg)}}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.video{aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:clamp(14px,1.6vw,22px);text-align:center;padding:20px}
+.video iframe{width:100%;height:100%;border:0}
+.eval{display:grid;grid-template-columns:repeat(4,1fr);gap:1.6vw}
+.eval .card{min-height:24vh;display:flex;flex-direction:column;justify-content:flex-end;border-color:var(--flag)}
+.stamp{position:absolute;right:7vw;top:8vh;transform:rotate(8deg);border:4px solid var(--red);color:var(--red);font-family:'Black Han Sans',sans-serif;font-size:clamp(20px,3vw,44px);padding:.2em .6em;border-radius:12px;opacity:.9}
+
+/* 달리는 사람 */
+.legL,.legR,.armL,.armR{transform-box:fill-box;transform-origin:50% 0}
+.run .legL{animation:leg .36s ease-in-out infinite}
+.run .legR{animation:leg .36s ease-in-out infinite reverse}
+.run .armL{animation:leg .36s ease-in-out infinite reverse}
+.run .armR{animation:leg .36s ease-in-out infinite}
+@keyframes leg{0%{transform:rotate(-35deg)}100%{transform:rotate(35deg)}}
+.speed{stroke:var(--chalk);stroke-width:3;stroke-linecap:round;opacity:0}
+.run .speed{animation:sp .4s linear infinite}
+@keyframes sp{0%{opacity:.6;transform:translateX(0)}100%{opacity:0;transform:translateX(-24px)}}
+.flagspin{transform-box:fill-box;transform-origin:center}
+.shake{animation:shake .5s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translate(4px,-3px)}50%{transform:translate(-4px,3px)}75%{transform:translate(3px,2px)}}
+.photo{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .6s}
+.photo.on{opacity:1}
+.photo::after{pointer-events:none;content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,14,10,.88) 0%,rgba(8,14,10,.7) 38%,rgba(8,14,10,.15) 62%,rgba(8,14,10,0) 100%)}
+.has-photo .svgwrap{display:none}
+.has-photo h1,.has-photo h2,.has-photo p.lead,.has-photo .eyebrow{text-shadow:0 2px 18px rgba(0,0,0,.6)}
+.has-photo .row .col:first-child{flex:0 0 52%}
+.slide>*{position:relative}
+.slide>.photo{position:absolute;inset:0;z-index:0}
+.slide>.credit{position:absolute}
+.credit{position:absolute;left:7vw;bottom:6vh;font-size:12px;color:rgba(244,241,230,.55)}
+@media (max-width:820px){.row{flex-direction:column;gap:3vh}.eval{grid-template-columns:1fr 1fr}.stamp{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<button class="btn" id="noteBtn">교사 메모 (N)</button>
+<div class="deck" id="deck">
+
+<!-- 0 타이틀 -->
+<section class="slide" data-photo="title" data-credit="사진: 경북일보 (kyongbuk.co.kr/news/articleView.html?idxno=4056952)" data-notes="
+<li>같은 폴더에 photos/title.jpg 를 넣으면 배경 사진이 됩니다. (Wikimedia Commons ‘flag football’ 검색 → 자유이용 사진 권장)</li>
+<li>목적은 흥미유발. 설명을 늘리지 말고 반응을 받으세요.</li>
+<li>‘2학기는 플래그풋볼. 우리가 해본 적 없는 새 종목.’ 한 문장으로 시작.</li>
+<li>올림픽 종목이라는 사실은 학생 반응이 좋습니다. 2028 LA 올림픽에서 처음 정식종목으로 치러집니다.</li>">
+  <div class="row">
+    <div class="col">
+      <div class="eyebrow">2학기 · 새로운 종목</div>
+      <h1>플래그<br>풋볼</h1>
+      <p class="lead" style="margin-top:3vh">2028 LA 올림픽 <span class="yellow">정식 종목</span>.<br>안 부딪히고, 던지고, 달리는 게임.</p>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 400 300">
+        <!-- 플레이어 실루엣: 몸통 + 벨트 + 플래그 -->
+        <circle cx="200" cy="70" r="30" fill="var(--chalk)"/>
+        <rect x="160" y="105" width="80" height="110" rx="26" fill="var(--chalk)"/>
+        <rect x="150" y="185" width="100" height="16" rx="8" fill="var(--ink)"/>
+        <g class="wave" style="transform-box:fill-box"><rect x="148" y="188" width="14" height="78" rx="4" fill="var(--flag)"/></g>
+        <g class="wave" style="transform-box:fill-box;animation-delay:.4s"><rect x="238" y="188" width="14" height="78" rx="4" fill="var(--flag)"/></g>
+        <!-- 공 -->
+        <ellipse cx="300" cy="90" rx="46" ry="26" fill="var(--ball)" transform="rotate(-25 300 90)"/>
+        <path d="M280 78 Q300 100 320 102" stroke="var(--chalk)" stroke-width="3" fill="none"/>
+        <path d="M290 84 l-3 6 M296 90 l-3 6 M302 96 l-3 6" stroke="var(--chalk)" stroke-width="3"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 0b 올림픽 -->
+<section class="slide" data-photo="olympic" data-credit="사진: LBHS News (lbhsnews.com/6170/sports/flag-football-coming-to-the-olympics-in-2028)" data-notes="
+<li>photos/olympic.jpg 를 넣으면 배경이 됩니다. (Olympics.com·IFAF 보도사진 또는 Wikimedia Commons)</li>
+<li>2023년 10월 IOC가 2028 LA 올림픽 종목으로 확정. 5:5, 남녀 모두.</li>
+<li>‘우리가 배우는 게 올림픽에서 하는 그 게임이다.’ 한 문장이면 충분.</li>">
+  <div class="eyebrow">LA 2028</div>
+  <h1 style="font-size:clamp(36px,6.4vw,100px)">올림픽에서<br>처음 하는 종목</h1>
+  <p class="lead" style="margin-top:3vh">5명 대 5명 · 남자 · 여자<br>우리가 배우는 게 <span class="yellow">그 게임</span>이다.</p>
+</section>
+
+<!-- 1 새로운데 낯설지 않다 -->
+<section class="slide" data-notes="
+<li>‘새 종목’이라고 겁주지 말고, 이미 해본 두 개의 조합임을 보여주세요.</li>
+<li>얼티밋: 엔드존에서 받으면 득점, 던져서 전진. 그대로 씁니다.</li>
+<li>꼬리잡기(플래그 벨트 차고 했던 것): 뽑히면 끝. 그대로 씁니다.</li>
+<li>학생이 새로 배울 건 ‘규칙 두 개’뿐이라고 미리 말해두면 안심합니다. (뒤에서 나옵니다)</li>
+<li>얼티밋/꼬리잡기를 안 해본 학급이면 ‘던져서 엔드존까지 가는 게임 + 꼬리 뽑기’로 말로 대체.</li>">
+  <div class="eyebrow">새로운데, 낯설지 않다</div>
+  <h2>이미 해본 게임 두 개를 합쳤다</h2>
+  <div class="row" style="align-items:stretch">
+    <div class="card col" style="text-align:center">
+      <svg viewBox="0 0 200 120" style="max-height:20vh">
+        <rect x="10" y="20" width="180" height="80" rx="6" fill="none" stroke="var(--chalk)" stroke-width="3"/>
+        <rect x="10" y="20" width="30" height="80" fill="var(--flag)" opacity=".8"/>
+        <rect x="160" y="20" width="30" height="80" fill="var(--flag)" opacity=".8"/>
+        <circle cx="70" cy="60" r="10" fill="var(--chalk)"/><circle cx="130" cy="60" r="10" fill="var(--chalk)"/>
+        <path d="M80 60 Q100 30 120 58" stroke="var(--chalk)" stroke-width="3" fill="none" stroke-dasharray="5 4"/>
+      </svg>
+      <h3>얼티밋</h3><p>엔드존 · 던져서 전진 · 받으면 득점</p>
+    </div>
+    <div class="big yellow" style="align-self:center">+</div>
+    <div class="card col" style="text-align:center">
+      <svg viewBox="0 0 200 120" style="max-height:20vh">
+        <circle cx="120" cy="50" r="16" fill="var(--chalk)"/>
+        <rect x="104" y="70" width="32" height="8" rx="4" fill="var(--ink)"/>
+        <rect x="100" y="72" width="7" height="34" rx="2" fill="var(--flag)"/>
+        <rect x="133" y="72" width="7" height="34" rx="2" fill="var(--flag)"/>
+        <circle cx="50" cy="60" r="16" fill="var(--muted)"/>
+        <path d="M66 62 L96 78" stroke="var(--red)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <h3>꼬리잡기</h3><p>플래그 벨트 · 뽑히면 끝 · 접촉 없음</p>
+    </div>
+    <div class="big yellow" style="align-self:center">=</div>
+    <div class="card col" style="text-align:center;border-color:var(--flag)">
+      <div class="big" style="font-size:clamp(36px,5vw,80px);margin:3vh 0">플래그<br>풋볼</div>
+      <p>새로 배울 건 규칙 <b class="yellow">두 개</b>뿐</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 안 부딪힌다 -->
+<section class="slide" data-notes="
+<li>‘꼬리잡기 했을 때 뽑히면 어땠어?’ 답을 몇 개 받고 시작하세요. 설명이 아니라 확인이 됩니다.</li>
+<li>핵심 메시지: 접촉 대신 플래그. 그래서 체격·힘이 게임을 정하지 않는다.</li>
+<li>애니메이션: 수비가 플래그를 뽑는 순간 공격수는 그 자리에서 정지(STOP).</li>
+<li>‘그럼 힘도 몸싸움도 없는데 뭘로 이기지?’ — 답은 주지 말고 남겨두세요. 학기 내내 회수할 질문.</li>
+<li>R 키로 다시 재생.</li>">
+  <div class="row">
+    <div class="col">
+      <div class="eyebrow">제일 재밌는 점</div>
+      <h2>안 부딪힌다</h2>
+      <p class="lead">잡는 대신 <span class="yellow">플래그를 뽑는다.</span><br>뽑히면 그 자리에서 <span class="redt">정지.</span></p>
+      <div style="margin-top:3vh">
+        <span class="chip red">밀기 ✕</span><span class="chip red">잡기 ✕</span><span class="chip red">부딪히기 ✕</span><span class="chip red">막아서기 ✕</span>
+      </div>
+      <p class="caption" style="margin-top:2vh">힘도 몸싸움도 없다. 그럼 뭘로 이기지?</p>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 520 300" id="animPull">
+        <line x1="0" y1="250" x2="520" y2="250" stroke="var(--chalk)" stroke-width="2" opacity=".35"/>
+        <line x1="0" y1="200" x2="520" y2="200" stroke="var(--chalk)" stroke-width="1" opacity=".15"/>
+        <g id="runner" class="run">
+          <g class="speed"><line x1="-40" y1="-30" x2="-22" y2="-30"/><line x1="-46" y1="-10" x2="-24" y2="-10"/><line x1="-38" y1="10" x2="-22" y2="10"/></g>
+          
+<circle cx="0" cy="-44" r="14" fill="var(--chalk)"/>
+<rect x="-12" y="-30" width="24" height="44" rx="10" fill="var(--chalk)"/>
+<rect class="armL" x="-20" y="-26" width="8" height="30" rx="4" fill="var(--chalk)"/>
+<rect class="armR" x="12" y="-26" width="8" height="30" rx="4" fill="var(--chalk)"/>
+<rect class="legL" x="-11" y="12" width="9" height="36" rx="4" fill="var(--chalk)"/>
+<rect class="legR" x="2" y="12" width="9" height="36" rx="4" fill="var(--chalk)"/>
+
+          <rect x="-16" y="8" width="32" height="7" rx="3" fill="var(--ink)"/>
+          <rect x="-22" y="10" width="7" height="34" rx="2" fill="var(--flag)"/>
+          <g id="flagR"><rect x="15" y="10" width="7" height="34" rx="2" fill="var(--flag)"/></g>
+          <ellipse cx="18" cy="-18" rx="13" ry="8" fill="var(--ball)" transform="rotate(-25 18 -18)"/>
+          <animateMotion id="mRun" dur="2.2s" begin="indefinite" fill="freeze" path="M90 230 L350 230"/>
+        </g>
+        <g id="chaser" class="run">
+          
+<circle cx="0" cy="-44" r="14" fill="var(--muted)"/>
+<rect x="-12" y="-30" width="24" height="44" rx="10" fill="var(--muted)"/>
+<rect class="armL" x="-20" y="-26" width="8" height="30" rx="4" fill="var(--muted)"/>
+<rect class="armR" x="12" y="-26" width="8" height="30" rx="4" fill="var(--muted)"/>
+<rect class="legL" x="-11" y="12" width="9" height="36" rx="4" fill="var(--muted)"/>
+<rect class="legR" x="2" y="12" width="9" height="36" rx="4" fill="var(--muted)"/>
+
+          <rect x="-16" y="8" width="32" height="7" rx="3" fill="var(--ink)"/>
+          <rect x="-22" y="10" width="7" height="34" rx="2" fill="var(--red)"/>
+          <rect x="15" y="10" width="7" height="34" rx="2" fill="var(--red)"/>
+          <animateMotion id="mChase" dur="2.2s" begin="indefinite" fill="freeze" path="M20 230 L302 230"/>
+        </g>
+        <g id="flagFly" opacity="0">
+          <g class="flagspin" style="animation:spin .8s linear"><rect x="-4" y="-17" width="7" height="34" rx="2" fill="var(--flag)"/></g>
+          <animateMotion id="mFly" dur=".8s" begin="indefinite" fill="freeze" path="M368 242 Q330 150 300 110"/>
+          <animate id="aFlyOp" attributeName="opacity" from="0" to="1" dur=".05s" begin="indefinite" fill="freeze"/>
+        </g>
+        <g id="burst" opacity="0" stroke="var(--flag)" stroke-width="4" stroke-linecap="round">
+          <line x1="368" y1="242" x2="395" y2="215"/><line x1="368" y1="242" x2="400" y2="245"/><line x1="368" y1="242" x2="392" y2="272"/><line x1="368" y1="242" x2="340" y2="275"/>
+        </g>
+        <text id="stopTxt" x="360" y="95" class="field-txt" font-size="64" fill="var(--red)" text-anchor="middle" opacity="0">STOP</text>
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+      </svg>
+      <div class="caption">플래그 뽑힘 → 그 자리에서 정지 → 다음 플레이 준비</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 영상 -->
+<section class="slide" data-notes="
+<li>파일 맨 아래 script의 VIDEO_URL에 유튜브 주소를 넣으면 여기 바로 재생됩니다. 비어 있으면 안내만 뜹니다.</li>
+<li>추천: 터치다운 장면이 많은 2~3분 하이라이트. 올림픽 관련 클립이면 더 좋음.</li>
+<li>보기 전에 미션을 줍니다: ‘던지는 사람 말고, 공 없는 사람들이 어디로 뛰는지 봐.’</li>
+<li>영상 끝나고 한 명만 물어보세요. ‘공 없는 애들 뭐 하던?’</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 32%">
+      <div class="eyebrow">보기 전에 미션</div>
+      <h2 style="font-size:clamp(28px,4vw,60px)">던지는 사람 말고,<br><span class="yellow">공 없는 사람</span>을 봐</h2>
+      <p class="lead" style="font-size:clamp(16px,1.8vw,26px)">어디로 뛰는지, 왜 거기로 뛰는지.</p>
+    </div>
+    <div class="col">
+      <div class="video" id="videoBox">영상 주소를 넣으면 여기에 재생됩니다.<br>(파일 하단 VIDEO_URL)</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 규칙: 4번의 기회 + 출발선 -->
+<section class="slide" data-notes="
+<li>규칙 두 개 중 첫 번째. 얼티밋과 가장 다른 점입니다.</li>
+<li>공격팀은 4번의 기회(다운) 안에 하프라인(또는 엔드존)까지 가야 한다. 못 가면 공격권 넘김.</li>
+<li>플래그 뽑힌 자리 = 다음 출발선(스크리미지 라인). 시작 전엔 양 팀 다 이 선을 못 넘는다.</li>
+<li>애니메이션: 4번 시도. 3번째는 실패(공 떨어짐)해도 기회가 남는 걸 보여줍니다. 4번째에 하프라인 통과 → 기회 4번 새로.</li>
+<li>얼티밋과 대비: 얼티밋은 떨어뜨리면 바로 턴오버. 여기는 실패해도 기회가 남는다.</li>
+<li>R 키로 다시 재생.</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 34%">
+      <div class="eyebrow">규칙 ①</div>
+      <h2 style="font-size:clamp(30px,4.4vw,66px)"><span class="yellow">4번</span>의 기회</h2>
+      <p class="lead" style="font-size:clamp(16px,1.9vw,28px)">4번 안에 <b>하프라인</b>까지.<br>플래그 뽑힌 자리가 <b>다음 출발선.</b><br>실패해도 기회는 남는다.</p>
+      <div style="margin-top:2.5vh" id="downChips">
+        <span class="chip ghost">1st</span><span class="chip ghost">2nd</span><span class="chip ghost">3rd</span><span class="chip ghost">4th</span>
+      </div>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 700 320" id="animDowns">
+        <defs><pattern id="hash" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="none"/></pattern></defs>
+        <rect x="20" y="40" width="660" height="240" fill="var(--turf)" stroke="var(--chalk)" stroke-width="3"/>
+        <rect x="20" y="40" width="70" height="240" fill="var(--flag)" opacity=".75"/>
+        <rect x="610" y="40" width="70" height="240" fill="var(--flag)" opacity=".75"/>
+        <text x="55" y="165" class="field-txt" font-size="22" text-anchor="middle" transform="rotate(-90 55 165)" fill="var(--ink)">END ZONE</text>
+        <text x="645" y="165" class="field-txt" font-size="22" text-anchor="middle" transform="rotate(90 645 165)" fill="var(--ink)">END ZONE</text>
+        <g stroke="var(--chalk)" stroke-width="1.5" opacity=".35">
+          <line x1="155" y1="40" x2="155" y2="280"/><line x1="220" y1="40" x2="220" y2="280"/><line x1="285" y1="40" x2="285" y2="280"/>
+          <line x1="415" y1="40" x2="415" y2="280"/><line x1="480" y1="40" x2="480" y2="280"/><line x1="545" y1="40" x2="545" y2="280"/>
+        </g>
+        <line x1="350" y1="40" x2="350" y2="280" stroke="var(--chalk)" stroke-width="4"/>
+        <text x="350" y="30" class="field-txt" font-size="20" text-anchor="middle">하프라인</text>
+        <!-- 스크리미지 라인 -->
+        <g id="losGroup">
+          <line id="los" x1="130" y1="40" x2="130" y2="280" stroke="var(--red)" stroke-width="5" stroke-dasharray="10 8"/>
+          <text id="losTxt" x="130" y="305" class="field-txt" font-size="18" text-anchor="middle" fill="var(--red)">출발선</text>
+        </g>
+        <!-- 공 -->
+        <g id="ballD">
+          <ellipse cx="0" cy="0" rx="20" ry="12" fill="var(--ball)" stroke="var(--chalk)" stroke-width="2"/>
+        </g>
+        <text id="downTxt" x="350" y="200" class="field-txt" font-size="64" text-anchor="middle" fill="var(--flag)" opacity="0"></text>
+      </svg>
+      <div class="caption" id="downCap">공격 시작. 4번 안에 하프라인을 넘어라.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 규칙: 점수 -->
+<section class="slide" data-notes="
+<li>규칙 두 개 중 두 번째. 얼티밋에서 온 부분이라 빠르게.</li>
+<li>엔드존에 공 가지고 들어가면(또는 받으면) 터치다운 6점. 얼티밋이랑 같음.</li>
+<li>엑스트라 포인트: 터치다운 후 한 번 더 시도. 가까운 데서 하면 +1, 먼 데서 하면 +2. (5m/10m 같은 거리는 리그마다 다름 — 우리 수업 규칙은 운동장에서 정합니다)</li>
+<li>‘터치다운 하고 끝이 아니네?’ 반응이 나오면 성공.</li>">
+  <div class="eyebrow">규칙 ②</div>
+  <h2>점수</h2>
+  <div class="row" style="align-items:stretch">
+    <div class="card col" style="border-color:var(--flag)">
+      <div class="num">6</div>
+      <h3>터치다운</h3>
+      <p>엔드존 안에서 공을 받거나, 공을 들고 엔드존에 들어가면. 얼티밋과 같다.</p>
+    </div>
+    <div class="card col">
+      <div class="num">+1</div>
+      <h3>엑스트라 포인트 (가까이서)</h3>
+      <p>터치다운 후 한 번 더 시도. 가까운 거리에서 성공하면 1점.</p>
+    </div>
+    <div class="card col">
+      <div class="num">+2</div>
+      <h3>엑스트라 포인트 (멀리서)</h3>
+      <p>더 먼 거리에서 도전. 성공하면 2점. 도전할지 말지는 팀이 고른다.</p>
+    </div>
+  </div>
+  <p class="caption" style="margin-top:3vh">터치다운 하고 끝이 아니다. 한 번 더 결정할 게 있다.</p>
+</section>
+
+<!-- 6 얼티밋과 다른 점 -->
+<section class="slide" data-notes="
+<li>정리 슬라이드. 같은 점은 말로, 다른 점 두 개만 화면에.</li>
+<li>‘플레이가 끊긴다’가 이 종목의 성격을 만듭니다: 멈추고 → 모여서 작전 → 다시. 몸으로 하는 바둑.</li>
+<li>다음 슬라이드(역할)로 넘어가는 다리: 작전을 짜려면 각자 역할이 있어야 한다.</li>">
+  <div class="eyebrow">얼티밋과 다른 점, 딱 두 개</div>
+  <div class="row" style="align-items:stretch;margin-top:2vh">
+    <div class="card col">
+      <div class="num">1</div>
+      <h3>떨어뜨려도 기회가 남는다</h3>
+      <p>얼티밋은 떨어지면 바로 상대 공. 여기는 4번의 기회 안에서 다시 시도.</p>
+    </div>
+    <div class="card col">
+      <div class="num">2</div>
+      <h3>한 번 던지면 멈춘다</h3>
+      <p>플래그 뽑히거나 공이 떨어지면 플레이 끝. <b class="yellow">모여서 작전</b> → 다시 시작.</p>
+    </div>
+  </div>
+  <h2 style="margin-top:5vh;font-size:clamp(26px,3.6vw,54px)">그래서 이 게임은 <span class="yellow">몸으로 하는 바둑</span>에 가깝다.</h2>
+</section>
+
+<!-- 7 역할 3개 -->
+<section class="slide" data-notes="
+<li>역할은 세 개만. 그 이상(RB, TE, OL…)은 5:5 플래그풋볼에 사실상 없습니다. 외우게 하지 마세요.</li>
+<li>센터: 공을 뒤로 넘겨주고(스냅) 플레이를 시작시킨다. 쿼터백: 던지는 사람. 리시버: 뛰어가서 받는 사람 (3명).</li>
+<li>애니메이션: 스냅 → 리시버 3명이 각자 다른 길로 뛰고 → 공이 한 명에게 간다.</li>
+<li>강조할 것: ‘던지는 사람 빼고 4명이 전부 뛴다.’ 잘 못 던져도, 잘 못 받아도 할 일이 있다.</li>
+<li>R 키로 다시 재생.</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 34%">
+      <div class="eyebrow">공격은 5명 · 역할은 3개</div>
+      <div class="card" style="margin-bottom:1.2vh"><h3><span class="yellow">센터</span> · 1명</h3><p>공을 뒤로 넘겨 플레이를 시작시킨다</p></div>
+      <div class="card" style="margin-bottom:1.2vh"><h3><span class="yellow">쿼터백</span> · 1명</h3><p>던지는 사람</p></div>
+      <div class="card"><h3><span class="yellow">리시버</span> · 3명</h3><p>뛰어가서 받는 사람</p></div>
+      <p class="caption" style="margin-top:2vh">던지는 사람 빼고 <b>4명이 다 뛴다.</b></p>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 700 320" id="animPlay">
+        <rect x="20" y="20" width="660" height="280" fill="var(--turf)" stroke="var(--chalk)" stroke-width="3"/>
+        <rect x="610" y="20" width="70" height="280" fill="var(--flag)" opacity=".75"/>
+        <g stroke="var(--chalk)" stroke-width="1.5" opacity=".3"><line x1="220" y1="20" x2="220" y2="300"/><line x1="350" y1="20" x2="350" y2="300"/><line x1="480" y1="20" x2="480" y2="300"/></g>
+        <line x1="150" y1="20" x2="150" y2="300" stroke="var(--red)" stroke-width="4" stroke-dasharray="10 8"/>
+        <!-- 열리는 공간 -->
+        <ellipse id="space" cx="300" cy="150" rx="60" ry="45" fill="var(--flag)" opacity="0"/>
+        <g id="routes" stroke="var(--flag)" stroke-width="3" fill="none" stroke-dasharray="8 8" opacity="0">
+          <path d="M150 70 L330 70 L440 35"/>
+          <path d="M150 250 L320 250 L440 285"/>
+          <path d="M150 160 L240 160 L300 150"/>
+        </g>
+        <g id="d1"><circle r="15" fill="var(--red)"/><text class="field-txt" font-size="13" text-anchor="middle" y="5" fill="#fff">D</text>
+          <animateMotion id="md1" dur="2.2s" begin="indefinite" fill="freeze" path="M300 70 L420 45"/></g>
+        <g id="d2"><circle r="15" fill="var(--red)"/><text class="field-txt" font-size="13" text-anchor="middle" y="5" fill="#fff">D</text>
+          <animateMotion id="md2" dur="2.2s" begin="indefinite" fill="freeze" path="M300 250 L420 275"/></g>
+        <g id="d3"><circle r="15" fill="var(--red)"/><text class="field-txt" font-size="13" text-anchor="middle" y="5" fill="#fff">D</text>
+          <animateMotion id="md3" dur="2.2s" begin="indefinite" fill="freeze" path="M430 130 L430 130"/></g>
+        <g id="d4"><circle r="15" fill="var(--red)"/><text class="field-txt" font-size="13" text-anchor="middle" y="5" fill="#fff">D</text>
+          <animateMotion id="md4" dur="2.2s" begin="indefinite" fill="freeze" path="M430 190 L430 190"/></g>
+        <g id="w1" class="pl"><circle r="15" fill="var(--chalk)"/><text class="field-txt" font-size="13" text-anchor="middle" y="5" fill="var(--ink)">WR</text>
+          <animateMotion id="mw1" dur="2.4s" begin="indefinite" fill="freeze" path="M150 70 L330 70 L440 35"/></g>
+        <g id="w2" class="pl"><circle r="15" fill="var(--chalk)"/><text class="field-txt" font-size="13" text-anchor="middle" y="5" fill="var(--ink)">WR</text>
+          <animateMotion id="mw2" dur="2.4s" begin="indefinite" fill="freeze" path="M150 250 L320 250 L440 285"/></g>
+        <g id="w3" class="pl"><circle r="15" fill="var(--chalk)"/><text class="field-txt" font-size="13" text-anchor="middle" y="5" fill="var(--ink)">WR</text>
+          <animateMotion id="mw3" dur="2.4s" begin="indefinite" fill="freeze" path="M150 160 L240 160 L300 150"/></g>
+        <g id="ctr"><circle cx="150" cy="120" r="15" fill="var(--flag)"/><text class="field-txt" font-size="13" text-anchor="middle" x="150" y="125" fill="var(--ink)">C</text></g>
+        <g id="qb"><circle cx="90" cy="120" r="15" fill="var(--flag)"/><text class="field-txt" font-size="13" text-anchor="middle" x="90" y="125" fill="var(--ink)">QB</text></g>
+        <g id="ballP"><ellipse rx="13" ry="8" fill="var(--ball)" stroke="var(--chalk)" stroke-width="2"/>
+          <animateMotion id="mSnap" dur=".4s" begin="indefinite" fill="freeze" path="M150 120 L90 120"/>
+          <animateMotion id="mThrow" dur=".9s" begin="indefinite" fill="freeze" path="M90 120 Q200 40 300 150"/></g>
+        <text id="catchTxt" x="300" y="100" class="field-txt" font-size="34" text-anchor="middle" fill="var(--flag)" opacity="0">CATCH!</text>
+        <text id="spaceTxt" x="300" y="215" class="field-txt" font-size="22" text-anchor="middle" fill="var(--flag)" opacity="0">수비가 따라가서 비어 버린 곳</text>
+      </svg>
+      <div class="caption">스냅 → 리시버들이 각자 다른 길로 → 수비가 따라간 사이 빈 곳으로 패스</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 질문 -->
+<section class="slide" data-notes="
+<li>답을 듣지 마세요. 다음 시간 운동장에서 첫 게임의 문제가 됩니다.</li>
+<li>‘몸싸움 없고, 실패해도 기회 남고, 시작 전에 상대가 어디 있는지 다 보인다. 그럼 이 게임은 뭘로 이기지?’ 여기서 슬라이드 2의 질문이 돌아옵니다.</li>
+<li>수비 대형 설명은 하지 않습니다. 학생이 게임에서 ‘어떻게 막지?’를 느낀 뒤에 배웁니다.</li>">
+  <div class="row">
+    <div class="col">
+      <div class="eyebrow">생각만 해보기 · 답은 다음 시간</div>
+      <h2 style="font-size:clamp(34px,5.2vw,78px)">4명이 다 뛰면,<br>수비는 <span class="yellow">어떻게</span><br>서야 할까?</h2>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 500 300">
+        <rect x="10" y="10" width="480" height="280" fill="var(--turf)" stroke="var(--chalk)" stroke-width="3"/>
+        <line x1="140" y1="10" x2="140" y2="290" stroke="var(--red)" stroke-width="4" stroke-dasharray="10 8"/>
+        <g fill="var(--chalk)"><circle cx="140" cy="60" r="14"/><circle cx="140" cy="120" r="14"/><circle cx="140" cy="180" r="14"/><circle cx="140" cy="240" r="14"/></g>
+        <circle cx="80" cy="120" r="14" fill="var(--flag)"/>
+        <g stroke="var(--flag)" stroke-width="3" fill="none" stroke-dasharray="6 6" opacity=".7">
+          <path d="M155 60 L300 60 L380 30"/><path d="M155 120 L260 120 L260 200"/><path d="M155 180 L330 180"/><path d="M155 240 L280 240 L400 270"/>
+        </g>
+        <g class="pulse" font-family="Black Han Sans" font-size="44" fill="var(--flag)" text-anchor="middle">
+          <text x="300" y="75">?</text><text x="360" y="150">?</text><text x="280" y="230">?</text><text x="420" y="120">?</text><text x="430" y="240">?</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 9 수행평가 -->
+<section class="slide" data-notes="
+<li>제목만 띄웁니다. 내용은 선생님이 직접 설명.</li>
+<li>가장 중요한 한 문장: ‘못 받아도 감점 아니다.’ 흥미유발 시간의 마지막에 불안을 걷어내고 끝냅니다.</li>
+<li>AI 활용 규칙은 시뮬레이터 처음 쓰는 차시에서 안내해도 됩니다.</li>">
+  <div class="eyebrow">이번 학기</div>
+  <h2>수행평가는 <span class="yellow">4가지</span></h2>
+  <div class="eval">
+    <div class="card"><div class="num">1</div><h3>패스 던지기</h3></div>
+    <div class="card"><div class="num">2</div><h3>라우트 뛰며 받기</h3></div>
+    <div class="card"><div class="num">3</div><h3>우리 팀 작전<br>만들고 실행하기</h3></div>
+    <div class="card"><div class="num">4</div><h3>그 작전이 왜 통하는지<br>설명하기</h3></div>
+  </div>
+</section>
+
+<!-- 10 다음 시간 -->
+<section class="slide" data-notes="
+<li>‘규칙 다 몰라도 된다. 뛰면서 배운다.’ 로 끝내세요.</li>
+<li>플래그 벨트를 오늘 나눠주고 다음 시간 들고 오게 하면 기대감이 다릅니다.</li>
+<li>암 가딩(팔로 플래그 가리기)은 반칙 — 다음 시간 첫 드릴에서 다룹니다. 오늘은 한 줄만.</li>">
+  <div class="stamp">규칙 다 몰라도 됨</div>
+  <div class="eyebrow">다음 시간부터</div>
+  <h1 style="font-size:clamp(40px,7vw,110px)">운동장에서<br>봅시다.</h1>
+  <div style="margin-top:4vh">
+    <span class="chip">플래그 벨트</span><span class="chip">운동화</span><span class="chip">물</span><span class="chip ghost">뛰면서 배운다</span>
+  </div>
+  <p class="caption" style="margin-top:3vh">팔로 플래그 가리기는 반칙. 나머지는 게임하다 배운다.</p>
+</section>
+
+</div>
+
+<div class="hud"><div id="pg">1 / 11</div><div class="dots" id="dots"></div><div>→ 다음 · ← 이전 · N 메모 · R 다시 · F 전체화면</div></div>
+<aside class="notes" id="notes"><h4>교사 메모</h4><ul id="noteList"></ul></aside>
+
+<script>
+// ===== 설정 =====
+const VIDEO_URL = "https://youtu.be/piUyFwiZe_Y";   // 예: "https://www.youtube.com/watch?v=XXXXXXXXXXX"  (유튜브 주소 그대로)
+// ==================
+
+const slides=[...document.querySelectorAll('.slide')];
+let cur=0;
+const dots=document.getElementById('dots');
+slides.forEach((s,i)=>{const d=document.createElement('span');d.onclick=()=>go(i);dots.appendChild(d);});
+const notes=document.getElementById('notes'), noteList=document.getElementById('noteList');
+
+function go(n){
+  cur=Math.max(0,Math.min(slides.length-1,n));
+  slides.forEach((s,i)=>s.classList.toggle('active',i===cur));
+  [...dots.children].forEach((d,i)=>d.classList.toggle('on',i===cur));
+  document.getElementById('pg').textContent=(cur+1)+' / '+slides.length;
+  noteList.innerHTML=slides[cur].dataset.notes||'<li>메모 없음</li>';
+  playAnim(cur);
+}
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();go(cur+1);}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur-1);}
+  else if(e.key==='n'||e.key==='N')notes.classList.toggle('open');
+  else if(e.key==='r'||e.key==='R')playAnim(cur);
+  else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}
+});
+document.getElementById('deck').addEventListener('click',e=>{ if(!e.target.closest('iframe')) go(cur+1); });
+document.getElementById('noteBtn').onclick=()=>notes.classList.toggle('open');
+
+// 영상
+(function(){
+  if(!VIDEO_URL) return;
+  let id=null; const m=VIDEO_URL.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); if(m) id=m[1];
+  const box=document.getElementById('videoBox');
+  box.innerHTML = id ? `<iframe src="https://www.youtube.com/embed/${id}?rel=0" allow="autoplay; fullscreen" allowfullscreen></iframe>` : `<video src="${VIDEO_URL}" controls style="width:100%;height:100%"></video>`;
+})();
+
+// ===== 애니메이션 =====
+let timers=[]; const T=(f,ms)=>timers.push(setTimeout(f,ms));
+const $=id=>document.getElementById(id);
+function playAnim(i){
+  timers.forEach(clearTimeout); timers=[];
+  const s=slides[i];
+  if(s.querySelector('#animPull')) animPull();
+  if(s.querySelector('#animDowns')) animDowns();
+  if(s.querySelector('#animPlay')) animPlay();
+}
+function resetMotion(...ids){ ids.forEach(id=>{const el=$(id); el.endElement?.(); }); }
+
+function animPull(){
+  const flagR=$('flagR'),fly=$('flagFly'),stop=$('stopTxt'),burst=$('burst'),runner=$('runner'),chaser=$('chaser');
+  flagR.style.opacity=1; fly.setAttribute('opacity',0); stop.setAttribute('opacity',0); burst.setAttribute('opacity',0);
+  runner.classList.add('run'); chaser.classList.add('run'); runner.classList.remove('shake');
+  $('mRun').beginElement(); $('mChase').beginElement();
+  T(()=>{ flagR.style.opacity=0; burst.setAttribute('opacity',1); $('aFlyOp').beginElement(); $('mFly').beginElement();
+          runner.classList.remove('run'); chaser.classList.remove('run'); runner.classList.add('shake'); },2150);
+  T(()=>{ burst.setAttribute('opacity',0); stop.setAttribute('opacity',1); },2500);
+}
+
+function animDowns(){
+  const ball=$('ballD'),los=$('los'),losTxt=$('losTxt'),dt=$('downTxt'),cap=$('downCap');
+  const chips=[...document.querySelectorAll('#downChips .chip')];
+  const lg=$('losGroup');
+  const setLos=x=>{lg.style.transform=`translateX(${x-130}px)`;};
+  const setBall=(x,y=160)=>{ball.style.transform=`translate(${x}px, ${y}px)`;};
+  const say=(t,c)=>{dt.textContent=t;dt.setAttribute('opacity',1);cap.textContent=c;};
+  const chip=(n)=>chips.forEach((c,k)=>{c.className='chip'+(k<n?' ':' ghost');});
+  setLos(130); setBall(130); dt.setAttribute('opacity',0); chip(0); cap.textContent='공격 시작. 4번 안에 하프라인을 넘어라.';
+  ball.style.transition='none'; ball.style.transform='translate(130px,160px)'; lg.style.transition='none'; lg.style.transform='translateX(0)';
+  T(()=>{ball.style.transition='transform .9s ease'; lg.style.transition='transform .6s ease';},50);
+  // 1st
+  T(()=>{chip(1);say('1st','1번째 시도');},400);
+  T(()=>setBall(215,110),900);
+  T(()=>{setLos(215);cap.textContent='플래그 뽑힘. 뽑힌 자리가 다음 출발선.';},1900);
+  // 2nd
+  T(()=>{chip(2);say('2nd','2번째 시도');},2900);
+  T(()=>setBall(265,210),3400);
+  T(()=>{setLos(265);cap.textContent='조금 전진. 출발선 이동.';},4400);
+  // 3rd fail
+  T(()=>{chip(3);say('3rd','3번째 시도');},5400);
+  T(()=>setBall(330,90),5900);
+  T(()=>{setBall(265,160);say('3rd ✕','공 떨어짐. 그래도 기회는 남아 있다. 출발선 그대로.');},6900);
+  // 4th success
+  T(()=>{chip(4);say('4th','4번째 시도, 마지막 기회');},8200);
+  T(()=>setBall(400,150),8700);
+  T(()=>{setLos(400);chip(1);say('1st!','하프라인 통과! 기회 4번이 다시 생긴다.');},9700);
+}
+
+function animPlay(){
+  const routes=$('routes'),catchTxt=$('catchTxt');
+  routes.setAttribute('opacity',0); catchTxt.setAttribute('opacity',0);
+  resetMotion('mThrow');
+
+  T(()=>$('mSnap').beginElement(),300);
+  T(()=>{routes.setAttribute('opacity',.7);['mW1','mW2','mW3'].forEach(id=>$(id).beginElement());},700);
+  T(()=>$('mThrow').beginElement(),2000);
+  T(()=>catchTxt.setAttribute('opacity',1),3000);
+}
+
+// 사진 슬롯: HTML과 같은 폴더 또는 photos/ 폴더에서 title / olympic 이름의 사진을 찾음
+slides.forEach(sl=>{
+  const base=sl.dataset.photo; if(!base) return;   // "title" 또는 "olympic"
+  const cands=[]; ['jpg','jpeg','png','JPG','PNG'].forEach(e=>{cands.push(base+'.'+e);cands.push('photos/'+base+'.'+e);});
+  (function tryNext(i){
+    if(i>=cands.length) return;
+    const img=new Image();
+    img.onload=()=>{const d=document.createElement('div');d.className='photo on';d.style.backgroundImage=`url("${cands[i]}")`;sl.prepend(d);sl.classList.add('has-photo');
+      const c=document.createElement('div');c.className='credit';c.textContent=sl.dataset.credit||'사진 출처: (여기에 입력)';sl.appendChild(c);};
+    img.onerror=()=>tryNext(i+1);
+    img.src=cands[i];
+  })(0);
+});
+go(0);
+</script>
+</body>
+</html>
