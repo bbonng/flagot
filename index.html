@@ -192,47 +192,36 @@ svg{width:100%;height:auto;display:block}
     <div class="col svgwrap">
       <svg viewBox="0 0 520 300" id="animPull">
         <line x1="0" y1="250" x2="520" y2="250" stroke="var(--chalk)" stroke-width="2" opacity=".35"/>
-        <line x1="0" y1="200" x2="520" y2="200" stroke="var(--chalk)" stroke-width="1" opacity=".15"/>
+        <rect id="flash" x="0" y="0" width="520" height="300" fill="var(--chalk)" opacity="0"/>
         <g id="runner" class="run">
           <g class="speed"><line x1="-40" y1="-30" x2="-22" y2="-30"/><line x1="-46" y1="-10" x2="-24" y2="-10"/><line x1="-38" y1="10" x2="-22" y2="10"/></g>
           
-<circle cx="0" cy="-44" r="14" fill="var(--chalk)"/>
-<rect x="-12" y="-30" width="24" height="44" rx="10" fill="var(--chalk)"/>
-<rect class="armL" x="-20" y="-26" width="8" height="30" rx="4" fill="var(--chalk)"/>
-<rect class="armR" x="12" y="-26" width="8" height="30" rx="4" fill="var(--chalk)"/>
-<rect class="legL" x="-11" y="12" width="9" height="36" rx="4" fill="var(--chalk)"/>
-<rect class="legR" x="2" y="12" width="9" height="36" rx="4" fill="var(--chalk)"/>
-
-          <rect x="-16" y="8" width="32" height="7" rx="3" fill="var(--ink)"/>
-          <rect x="-22" y="10" width="7" height="34" rx="2" fill="var(--flag)"/>
-          <g id="flagR"><rect x="15" y="10" width="7" height="34" rx="2" fill="var(--flag)"/></g>
-          <ellipse cx="18" cy="-18" rx="13" ry="8" fill="var(--ball)" transform="rotate(-25 18 -18)"/>
-          <animateMotion id="mRun" dur="2.2s" begin="indefinite" fill="freeze" path="M90 230 L350 230"/>
+<circle cx="0" cy="-46" r="14" fill="var(--chalk)"/>
+<rect x="-12" y="-32" width="24" height="44" rx="10" fill="var(--chalk)"/>
+<rect class="armL" x="-20" y="-28" width="8" height="30" rx="4" fill="var(--chalk)"/>
+<rect class="armR" x="12" y="-28" width="8" height="30" rx="4" fill="var(--chalk)"/>
+<rect class="legL" x="-11" y="10" width="9" height="36" rx="4" fill="var(--chalk)"/>
+<rect class="legR" x="2" y="10" width="9" height="36" rx="4" fill="var(--chalk)"/>
+          <rect x="-16" y="6" width="32" height="7" rx="3" fill="var(--ink)"/>
+          <rect x="-22" y="8" width="7" height="34" rx="2" fill="var(--flag)"/>
+          <g id="flagR"><rect x="15" y="8" width="7" height="34" rx="2" fill="var(--flag)"/></g>
+          <ellipse cx="18" cy="-20" rx="13" ry="8" fill="var(--ball)" transform="rotate(-25 18 -20)"/>
         </g>
         <g id="chaser" class="run">
           
-<circle cx="0" cy="-44" r="14" fill="var(--muted)"/>
-<rect x="-12" y="-30" width="24" height="44" rx="10" fill="var(--muted)"/>
-<rect class="armL" x="-20" y="-26" width="8" height="30" rx="4" fill="var(--muted)"/>
-<rect class="armR" x="12" y="-26" width="8" height="30" rx="4" fill="var(--muted)"/>
-<rect class="legL" x="-11" y="12" width="9" height="36" rx="4" fill="var(--muted)"/>
-<rect class="legR" x="2" y="12" width="9" height="36" rx="4" fill="var(--muted)"/>
-
-          <rect x="-16" y="8" width="32" height="7" rx="3" fill="var(--ink)"/>
-          <rect x="-22" y="10" width="7" height="34" rx="2" fill="var(--red)"/>
-          <rect x="15" y="10" width="7" height="34" rx="2" fill="var(--red)"/>
-          <animateMotion id="mChase" dur="2.2s" begin="indefinite" fill="freeze" path="M20 230 L302 230"/>
+<circle cx="0" cy="-46" r="14" fill="var(--muted)"/>
+<rect x="-12" y="-32" width="24" height="44" rx="10" fill="var(--muted)"/>
+<rect class="armL" x="-20" y="-28" width="8" height="30" rx="4" fill="var(--muted)"/>
+<g id="reach" style="transform-box:fill-box;transform-origin:50% 0"><rect x="12" y="-28" width="8" height="30" rx="4" fill="var(--muted)"/></g>
+<rect class="legL" x="-11" y="10" width="9" height="36" rx="4" fill="var(--muted)"/>
+<rect class="legR" x="2" y="10" width="9" height="36" rx="4" fill="var(--muted)"/>
+          <rect x="-16" y="6" width="32" height="7" rx="3" fill="var(--ink)"/>
+          <rect x="-22" y="8" width="7" height="34" rx="2" fill="var(--red)"/>
+          <rect x="15" y="8" width="7" height="34" rx="2" fill="var(--red)"/>
         </g>
-        <g id="flagFly" opacity="0">
-          <g class="flagspin" style="animation:spin .8s linear"><rect x="-4" y="-17" width="7" height="34" rx="2" fill="var(--flag)"/></g>
-          <animateMotion id="mFly" dur=".8s" begin="indefinite" fill="freeze" path="M368 242 Q330 150 300 110"/>
-          <animate id="aFlyOp" attributeName="opacity" from="0" to="1" dur=".05s" begin="indefinite" fill="freeze"/>
-        </g>
-        <g id="burst" opacity="0" stroke="var(--flag)" stroke-width="4" stroke-linecap="round">
-          <line x1="368" y1="242" x2="395" y2="215"/><line x1="368" y1="242" x2="400" y2="245"/><line x1="368" y1="242" x2="392" y2="272"/><line x1="368" y1="242" x2="340" y2="275"/>
-        </g>
-        <text id="stopTxt" x="360" y="95" class="field-txt" font-size="64" fill="var(--red)" text-anchor="middle" opacity="0">STOP</text>
-        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+        <g id="flagFly" opacity="0"><rect x="-4" y="-17" width="7" height="34" rx="2" fill="var(--flag)"/></g>
+        <g id="burst" opacity="0" stroke="var(--flag)" stroke-width="4" stroke-linecap="round"></g>
+        <text id="stopTxt" x="360" y="80" class="field-txt" font-size="72" fill="var(--red)" text-anchor="middle" opacity="0">STOP</text>
       </svg>
       <div class="caption">플래그 뽑힘 → 그 자리에서 정지 → 다음 플레이 준비</div>
     </div>
@@ -518,14 +507,55 @@ function playAnim(i){
 }
 function resetMotion(...ids){ ids.forEach(id=>{const el=$(id); el.endElement?.(); }); }
 
+let pullRaf=null;
 function animPull(){
-  const flagR=$('flagR'),fly=$('flagFly'),stop=$('stopTxt'),burst=$('burst'),runner=$('runner'),chaser=$('chaser');
-  flagR.style.opacity=1; fly.setAttribute('opacity',0); stop.setAttribute('opacity',0); burst.setAttribute('opacity',0);
-  runner.classList.add('run'); chaser.classList.add('run'); runner.classList.remove('shake');
-  $('mRun').beginElement(); $('mChase').beginElement();
-  T(()=>{ flagR.style.opacity=0; burst.setAttribute('opacity',1); $('aFlyOp').beginElement(); $('mFly').beginElement();
-          runner.classList.remove('run'); chaser.classList.remove('run'); runner.classList.add('shake'); },2150);
-  T(()=>{ burst.setAttribute('opacity',0); stop.setAttribute('opacity',1); },2500);
+  if(pullRaf) cancelAnimationFrame(pullRaf);
+  const R=$('runner'),C=$('chaser'),flagR=$('flagR'),fly=$('flagFly'),stop=$('stopTxt'),burst=$('burst'),flash=$('flash'),reach=$('reach');
+  const Y=230;
+  const set=(el,x,y=Y,rot=0)=>el.setAttribute('transform',`translate(${x} ${y}) rotate(${rot})`);
+  const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+  const easeOut=t=>1-Math.pow(1-t,3);
+  // 상태 초기화
+  R.classList.add('run'); C.classList.add('run'); flagR.style.opacity=1;
+  fly.setAttribute('opacity',0); stop.setAttribute('opacity',0); burst.setAttribute('opacity',0); flash.setAttribute('opacity',0);
+  reach.style.transform='rotate(0deg)'; burst.innerHTML='';
+  set(R,80); set(C,-20);
+  const t0=performance.now();
+  // 타임라인(ms): 0~1900 추격(간격 좁혀짐) / 1900~2150 팔 뻗기 / 2150 뽑힘·히트스톱 / 2450~3300 플래그 비행+공격수 미끄러짐 / 3300 STOP
+  const PULL=2150, PX=352;
+  function frame(now){
+    const t=now-t0;
+    if(t<PULL){
+      const p=t/PULL;
+      const rx=80+(PX-80)*p;                         // 공격수 등속
+      const cx=-20+(PX-20-46)*ease(p);               // 수비수는 뒤에서 가속, 46px 뒤까지
+      set(R,rx); set(C,cx);
+      if(t>1900) reach.style.transform=`rotate(${-70*((t-1900)/250)}deg)`;
+    }else if(t<PULL+300){
+      // 히트스톱: 둘 다 정지, 플래시
+      R.classList.remove('run'); C.classList.remove('run');
+      flagR.style.opacity=0; reach.style.transform='rotate(-70deg)';
+      flash.setAttribute('opacity', t<PULL+80? .35*(1-(t-PULL)/80) : 0);
+      if(!burst.childElementCount){
+        burst.setAttribute('opacity',1);
+        for(let k=0;k<6;k++){const ang=-20+k*40, r1=14,r2=36; const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+          l.setAttribute('x1',PX+18+r1*Math.cos(ang*Math.PI/180));l.setAttribute('y1',Y+25+r1*Math.sin(ang*Math.PI/180));
+          l.setAttribute('x2',PX+18+r2*Math.cos(ang*Math.PI/180));l.setAttribute('y2',Y+25+r2*Math.sin(ang*Math.PI/180));burst.appendChild(l);}
+      }
+    }else if(t<PULL+300+900){
+      const p=(t-PULL-300)/900, e=easeOut(p);
+      burst.setAttribute('opacity',Math.max(0,1-p*3));
+      // 공격수 미끄러지며 정지 (앞으로 30px, 몸 살짝 뒤로 젖힘)
+      set(R,PX+30*e,Y,-12*(1-e)-4*e);
+      // 플래그 포물선 비행 + 회전
+      const fx=PX+18+70*e, fy=Y+25-110*Math.sin(p*Math.PI)+20*p;
+      fly.setAttribute('opacity',1); fly.setAttribute('transform',`translate(${fx} ${fy}) rotate(${540*p})`);
+    }else{
+      stop.setAttribute('opacity',1); pullRaf=null; return;
+    }
+    pullRaf=requestAnimationFrame(frame);
+  }
+  pullRaf=requestAnimationFrame(frame);
 }
 
 function animDowns(){
