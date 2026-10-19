@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>플래그풋볼 1차시</title>
+<meta name="theme-color" content="#17422A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   플래그풋볼 1차시 — 중학생용, 누구나 수업할 수 있게 만든 슬라이드
+   조작: → / Space / 클릭 = 다음(정답 보기 포함)   ← = 이전
+         N = 교사 메모   R = 애니메이션 다시   F = 전체화면
+   영상: 아래 script 맨 위 VIDEO_URL 에 유튜브 주소를 넣으면 11번째 장에 뜹니다.
+   ========================================================== */
+:root{
+  --turf:#17422A; --turf2:#1F5A38; --chalk:#F4F1E6; --flag:#FFC72C; --red:#E5322D;
+  --ball:#8B4A2B; --ink:#0D2418; --muted:#B9C9BF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:repeating-linear-gradient(90deg,var(--turf) 0 8.333vw,#1A4930 8.333vw 16.666vw);word-break:keep-all;color:var(--chalk);font-family:'Noto Sans KR',system-ui,sans-serif;overflow:hidden}
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;display:none;padding:6vh 7vw 9vh;flex-direction:column;justify-content:center}
+.slide.active{display:flex;animation:in .45s cubic-bezier(.23,1,.32,1)}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.slide>*{position:relative}
+.eyebrow{font-size:clamp(16px,1.7vw,26px);color:var(--flag);font-weight:700;margin-bottom:1.4vh}
+h1,h2,h3{text-wrap:balance}
+h1{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(44px,7.2vw,118px);line-height:1.04}
+h2{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(32px,4.6vw,72px);line-height:1.1;margin-bottom:2.6vh}
+p.lead{font-size:clamp(18px,2.2vw,34px);line-height:1.5;max-width:30ch;text-wrap:pretty}
+.yellow{color:var(--flag)} .redt{color:var(--red)} .muted{color:var(--muted)}
+.row{display:flex;gap:4.5vw;align-items:center}
+.col{flex:1;min-width:0}
+.chip{display:inline-block;background:var(--flag);color:var(--ink);font-weight:700;border-radius:999px;padding:.35em 1em;font-size:clamp(14px,1.6vw,24px);margin:.3em .3em .3em 0}
+.chip.red{background:var(--red);color:#fff}
+.chip.ghost{background:transparent;border:2px solid var(--chalk);color:var(--chalk)}
+svg{width:100%;height:auto;display:block}
+.svgwrap{background:var(--turf2);border-radius:12px;padding:1.2vw;box-shadow:inset 0 0 0 2px rgba(244,241,230,.12)}
+.caption{margin-top:1.2vh;font-size:clamp(15px,1.5vw,24px);color:var(--muted);min-height:1.6em}
+.caption b{color:var(--chalk)}
+.field-txt{font-family:'Black Han Sans',sans-serif}
+.field-txt:not([fill]){fill:var(--chalk)}
+.stamp-note{font-size:clamp(13px,1.2vw,18px);color:var(--muted);margin-top:2vh}
+
+/* 1. 새 종목 5개 */
+.sports{display:grid;grid-template-columns:repeat(5,1fr);gap:1.6vw;margin-top:3vh}
+.sport{border:2px solid rgba(244,241,230,.22);border-radius:12px;padding:2.4vh 1vw 2vh;text-align:center;transition:opacity .5s cubic-bezier(.23,1,.32,1),transform .5s cubic-bezier(.23,1,.32,1),border-color .5s,background-color .5s}
+.sport svg{width:62%;margin:0 auto 1.6vh;overflow:visible}
+.sport svg *{fill:none;stroke:var(--chalk);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.sport svg .fill{fill:var(--chalk);stroke:none}
+.sport b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(18px,2vw,32px);display:block}
+.picked .sport{opacity:.22;transform:scale(.97)}
+.picked .sport.ff{opacity:1;transform:scale(1.06);border-color:var(--flag);background:rgba(255,199,44,.08)}
+.picked .sport.ff svg .flagc{stroke:var(--flag)}
+.reveal{opacity:0;transform:translateY(10px);transition:opacity .6s cubic-bezier(.23,1,.32,1),transform .6s cubic-bezier(.23,1,.32,1)}
+.picked .reveal{opacity:1;transform:none}
+.title-swap{display:grid}
+.title-swap>*{grid-area:1/1;transition:opacity .5s cubic-bezier(.23,1,.32,1),transform .5s cubic-bezier(.23,1,.32,1)}
+.title-swap .after{opacity:0;transform:translateY(12px)}
+.picked .title-swap .before{opacity:0;transform:translateY(-12px)}
+.picked .title-swap .after{opacity:1;transform:none}
+
+/* 2. 의자 6개 */
+.seats{display:grid;grid-template-columns:auto repeat(6,1fr);gap:1.2vh 1vw;align-items:center;margin-top:2vh}
+.seats .lbl{font-family:'Black Han Sans',sans-serif;font-size:clamp(20px,2.2vw,36px);padding-right:1.4vw}
+.seat{height:clamp(70px,13vh,130px);border:2px dashed rgba(244,241,230,.35);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:.4em;position:relative}
+.seat .q{font-family:'Black Han Sans',sans-serif;font-size:clamp(28px,3.4vw,56px);color:rgba(244,241,230,.35)}
+.seat .who{position:absolute;inset:-2px;border-radius:12px;background:var(--chalk);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transform:scale(.92);transition:opacity .45s cubic-bezier(.23,1,.32,1),transform .45s cubic-bezier(.23,1,.32,1)}
+.seat .who b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(18px,2.1vw,34px)}
+.seat .who small{font-size:clamp(11px,1vw,16px);font-weight:700;opacity:.7;margin-top:.2em}
+.seat .who.host{background:var(--flag)}
+.seat.on .who{opacity:1;transform:none}
+.seat.open .q{color:var(--flag)}
+.seats-foot{display:flex;justify-content:space-between;gap:2vw;margin-top:2.4vh;font-size:clamp(15px,1.5vw,24px);color:var(--muted)}
+
+/* 4. 비교표 */
+.vs{display:grid;grid-template-columns:auto 1fr 1fr;border-top:3px solid rgba(244,241,230,.8)}
+.vs>div{padding:1.7vh 1.6vw;border-bottom:1px solid rgba(244,241,230,.18);font-size:clamp(17px,1.8vw,30px)}
+.vs .h{font-family:'Black Han Sans',sans-serif;font-size:clamp(22px,2.5vw,40px)}
+.vs .k{color:var(--muted);font-size:clamp(14px,1.4vw,22px);display:flex;align-items:center;padding-left:0}
+.vs .ff{background:rgba(255,199,44,.07);color:var(--chalk)}
+.vs .ff.h{color:var(--flag)}
+.vs .qmark{font-family:'Black Han Sans',sans-serif;color:var(--flag);font-size:clamp(28px,3vw,48px);line-height:1}
+
+/* 점수판 */
+.board{display:grid;border-top:3px solid rgba(244,241,230,.8)}
+.board .cell{padding:3vh 2.4vw 0;border-left:2px solid rgba(244,241,230,.28)}
+.board .cell:first-child{border-left:0;padding-left:0}
+.board .num{font-family:'Black Han Sans',sans-serif;color:var(--flag);font-size:clamp(56px,7vw,120px);line-height:1;margin-bottom:1.2vh}
+.board .num.plain{color:var(--chalk)}
+.board h3{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(24px,2.8vw,46px);margin-bottom:1vh}
+.board p{font-size:clamp(17px,1.7vw,29px);line-height:1.5;color:var(--muted);max-width:30ch}
+
+/* 포지션 */
+.roles{display:flex;flex-direction:column;gap:2.6vh}
+.role{display:flex;gap:1.4vw;align-items:center}
+.tok{flex:0 0 auto;width:clamp(46px,4.4vw,72px);height:clamp(46px,4.4vw,72px);border-radius:50%;display:grid;place-items:center;font-family:'Black Han Sans',sans-serif;font-size:clamp(17px,1.7vw,28px);color:var(--ink);background:var(--flag)}
+.tok.wr{background:var(--chalk)} .tok.d{background:var(--red);color:#fff}
+.role h3{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(24px,2.8vw,46px)}
+.role h3 small{font-family:'Noto Sans KR',sans-serif;font-size:.55em;color:var(--muted);margin-left:.4em;font-weight:500}
+.role p{font-size:clamp(16px,1.6vw,28px);color:var(--muted)}
+
+/* 규칙 ③ 두 화면 */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:2vw}
+.pair .svgwrap h3{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(20px,2.2vw,36px);margin:0 0 1vh .3vw}
+
+/* 맞히기 */
+.quiz-q{font-size:clamp(18px,2vw,32px);line-height:1.5;margin-top:1vh}
+.legend{display:flex;gap:1.4vw;flex-wrap:wrap;margin-top:3vh;font-size:clamp(14px,1.4vw,22px);color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:.5em}
+.legend i{display:inline-block;width:1.1em;height:1.1em;border-radius:50%}
+.answer{opacity:0;transform:translateY(8px);transition:opacity .5s cubic-bezier(.23,1,.32,1),transform .5s cubic-bezier(.23,1,.32,1)}
+.stepped .answer{opacity:1;transform:none}
+.stepped .ask{opacity:.35}
+.ask{transition:opacity .4s}
+.tag{display:inline-block;font-family:'Black Han Sans',sans-serif;font-size:clamp(14px,1.4vw,22px);color:var(--ink);background:var(--flag);border-radius:6px;padding:.15em .6em;margin-bottom:1.6vh}
+
+/* 영상 */
+.video{aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:clamp(14px,1.6vw,22px);text-align:center;padding:20px}
+.video iframe{width:100%;height:100%;border:0}
+
+/* 마지막 장 */
+.final .after{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.23,1,.32,1),transform .6s cubic-bezier(.23,1,.32,1)}
+.final.stepped .after{opacity:1;transform:none}
+.final .before{transition:opacity .4s}
+.final.stepped .before{opacity:.35}
+
+/* 달리는 사람(4번째 장 애니메이션) */
+.legL,.legR,.armL,.armR{transform-box:fill-box;transform-origin:50% 0}
+.speed{stroke:var(--chalk);stroke-width:3;stroke-linecap:round;opacity:0}
+
+/* 진행 표시·메모 */
+.hud{position:fixed;text-shadow:0 1px 6px rgba(0,0,0,.85);background:linear-gradient(rgba(8,14,10,0),rgba(8,14,10,.6));left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;font-size:13px;color:rgba(244,241,230,.6);pointer-events:none;z-index:4}
+.drive{position:relative;width:min(560px,46vw);height:20px;pointer-events:auto;border:1.5px solid rgba(244,241,230,.5);border-radius:3px;background:rgba(15,46,29,.7)}
+.drive .ez{position:absolute;top:0;bottom:0;width:7%;background:rgba(255,199,44,.5)} .drive .ez.l{left:0} .drive .ez.r{right:0}
+.drive .yd{position:absolute;top:2px;bottom:2px;width:16px;margin-left:-8px;background:none;border:0;padding:0;cursor:pointer}
+.drive .yd::before{content:"";position:absolute;left:7px;top:0;bottom:0;width:2px;background:rgba(244,241,230,.3)}
+.drive .yd.done::before{background:rgba(244,241,230,.75)}
+.drive .yd:focus-visible{outline:2px solid var(--flag);outline-offset:2px;border-radius:2px}
+.drive .ball{position:absolute;top:50%;left:10%;width:20px;height:12px;margin:-6px 0 0 -10px;border-radius:50%;background:var(--ball);border:1.5px solid var(--chalk);transition:left .55s cubic-bezier(.23,1,.32,1);pointer-events:none}
+.drive .ball.td{box-shadow:0 0 0 4px rgba(255,199,44,.45)}
+.notes{position:fixed;right:0;top:0;bottom:0;width:min(440px,42vw);background:#0D2418;color:#DDE6DF;padding:24px;font-size:15px;line-height:1.65;transform:translateX(100%);transition:transform .25s cubic-bezier(.23,1,.32,1);overflow:auto;border-left:3px solid var(--flag);z-index:6}
+.notes.open{transform:none}
+.notes h4{color:var(--flag);margin-bottom:10px;font-size:15px}
+.notes ul{padding-left:18px} .notes li{margin-bottom:9px}
+.notes li b{color:var(--flag)}
+.btn{position:fixed;top:14px;right:14px;background:rgba(0,0,0,.35);border:1px solid rgba(244,241,230,.3);color:var(--chalk);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;z-index:7}
+.btn:focus-visible{outline:2px solid var(--flag);outline-offset:2px}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+@media (max-width:820px){
+  .slide{padding:8vh 6vw 10vh;justify-content:flex-start;overflow-y:auto}
+  .row{flex-direction:column;gap:3vh;align-items:stretch}
+  .sports{grid-template-columns:repeat(3,1fr)}
+  .pair{grid-template-columns:1fr}
+  .board{grid-template-columns:1fr!important}.board .cell{border-left:0;padding-left:0}
+  .seats{grid-template-columns:repeat(6,1fr)}.seats .lbl{grid-column:1/-1}
+  .drive{width:56vw}.hud .hint{display:none}
+  .seat .who b{font-size:13px}.seat .who small{font-size:9px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<button class="btn" id="noteBtn" type="button">교사 메모 (N)</button>
+<div class="deck" id="deck">
+
+<!-- 1 올림픽 새 종목 -->
+<section class="slide" data-steps="1" data-notes="
+<li><b>목표</b>: 처음 3분 안에 ‘이거 처음 보는 종목인데?’를 만드는 장입니다.</li>
+<li>먼저 묻습니다. <b>‘2028년 LA 올림픽에 새로 들어오는 종목 5개야. 이 중에 해 본 거 있는 사람?’</b> 야구는 손이 많이 올라가고, 플래그풋볼에는 거의 아무도 안 올라갑니다. 그게 이 장의 목적입니다.</li>
+<li>→ 를 누르면 플래그풋볼만 남고 제목이 바뀝니다. ‘이번 시간에 배울 게 이거야.’</li>
+<li>참고: 야구·소프트볼은 2020 도쿄 이후 다시 돌아오는 종목, 크리켓·라크로스·스쿼시·플래그풋볼은 LA에서 처음입니다. (2023년 10월 IOC 확정)</li>">
+  <div class="title-swap">
+    <div class="before"><div class="eyebrow">2028 LA 올림픽</div><h2 style="margin-bottom:0">새로 들어오는 종목 5개.<br>이 중에 해 본 거 있어?</h2></div>
+    <div class="after"><div class="eyebrow">2028 LA 올림픽</div><h1>플래그풋볼</h1></div>
+  </div>
+  <div class="sports">
+    <div class="sport">
+      <svg viewBox="0 0 100 100"><circle cx="40" cy="58" r="22"/><path d="M26 42c7 6 7 26 0 32M54 42c-7 6-7 26 0 32"/><path d="M62 30 88 8" style="stroke-width:9"/></svg>
+      <b>야구·소프트볼</b>
+    </div>
+    <div class="sport">
+      <svg viewBox="0 0 100 100"><path d="M22 18v62M34 18v62M46 18v62M18 18h32"/><path d="M62 82 84 20" style="stroke-width:12"/><path d="M86 14l4-10"/></svg>
+      <b>크리켓</b>
+    </div>
+    <div class="sport ff">
+      <svg viewBox="0 0 100 100"><ellipse cx="62" cy="32" rx="24" ry="14" transform="rotate(-25 62 32)"/><path d="M52 30l20-8M58 22l2 6M64 20l2 6"/><path d="M12 62h70"/><path class="flagc" d="M24 64v28M68 64v28" style="stroke-width:8"/></svg>
+      <b>플래그풋볼</b>
+    </div>
+    <div class="sport">
+      <svg viewBox="0 0 100 100"><path d="M20 90 62 34"/><path d="M62 34c-6-14 6-28 20-24s16 22 2 28c-8 4-16 2-22-4z"/><path d="M68 18l12 16M76 12l8 14"/><circle class="fill" cx="30" cy="40" r="7"/></svg>
+      <b>라크로스</b>
+    </div>
+    <div class="sport">
+      <svg viewBox="0 0 100 100"><ellipse cx="58" cy="34" rx="20" ry="26" transform="rotate(35 58 34)"/><path d="M44 54 18 88" style="stroke-width:8"/><circle class="fill" cx="22" cy="28" r="6"/></svg>
+      <b>스쿼시</b>
+    </div>
+  </div>
+  <p class="lead reveal" style="margin-top:3vh;max-width:none">허리에 단 플래그를 뽑는 미식축구. 그래서 <b>안 부딪힌다.</b></p>
+</section>
+
+<!-- 2 자리는 6개 -->
+<section class="slide" data-notes="
+<li><b>목표</b>: ‘올림픽에 나가는 건 정말 몇 나라 안 된다’를 보여 주고, 남은 자리가 있다는 걸 알려 줍니다.</li>
+<li>남녀 각 6팀만 나갑니다. 개최국 미국은 자동 출전. 2026년 8월 독일 뒤셀도르프 세계선수권에서 미국을 뺀 상위 두 팀이 바로 자리를 얻었습니다.</li>
+<li>남자: 미국(우승) · 이탈리아(준우승) · 캐나다(3위). 여자: 캐나다(우승) · 미국(준우승) · 멕시코(3위).</li>
+<li>남은 3자리: 2027년 대륙별 선수권(아시아 포함)에서 대륙마다 상위 2팀 → 2028년 최종 예선 10팀이 남은 3자리를 다툽니다.</li>
+<li>질문: <b>‘아시아 팀도 나갈 수 있을까? 우리나라는?’</b> → 다음 장으로.</li>
+<li>⚠ 출전국은 예선이 진행되면서 바뀝니다. 수업 전에 한 번 확인하세요. (이 자료는 2026년 10월 기준)</li>">
+  <div class="eyebrow">올림픽에 나가는 팀</div>
+  <h2>자리는 남녀 각 6개뿐</h2>
+  <div class="seats" id="seats">
+    <div class="lbl">남자</div>
+    <div class="seat"><span class="q">?</span><div class="who host"><b>미국</b><small>개최국</small></div></div>
+    <div class="seat"><span class="q">?</span><div class="who"><b>이탈리아</b><small>세계선수권 2위</small></div></div>
+    <div class="seat"><span class="q">?</span><div class="who"><b>캐나다</b><small>세계선수권 3위</small></div></div>
+    <div class="seat open"><span class="q">?</span></div>
+    <div class="seat open"><span class="q">?</span></div>
+    <div class="seat open"><span class="q">?</span></div>
+    <div class="lbl">여자</div>
+    <div class="seat"><span class="q">?</span><div class="who host"><b>미국</b><small>개최국</small></div></div>
+    <div class="seat"><span class="q">?</span><div class="who"><b>캐나다</b><small>세계선수권 우승</small></div></div>
+    <div class="seat"><span class="q">?</span><div class="who"><b>멕시코</b><small>세계선수권 3위</small></div></div>
+    <div class="seat open"><span class="q">?</span></div>
+    <div class="seat open"><span class="q">?</span></div>
+    <div class="seat open"><span class="q">?</span></div>
+  </div>
+  <div class="seats-foot"><span>남은 3자리 → 2027 대륙 선수권(아시아 포함) → 2028 최종 예선</span><span>2026년 10월 기준</span></div>
+</section>
+
+<!-- 3 우리 또래 국가대표 -->
+<section class="slide" data-notes="
+<li><b>목표</b>: ‘미식축구도 안 하는 나라에서 누가 이걸 해?’라는 생각을 깨는 장입니다. 1막에서 가장 센 장.</li>
+<li>2026년 3월, 경북 <b>군위중학교 여학생 11명</b>이 U-15(15세 이하) 대한민국 대표로 호주 골드코스트에서 열린 NFL 플래그풋볼 아시아·태평양 챔피언십(3. 19.~22.)에 나갔습니다.</li>
+<li>질문: <b>‘키 크고 힘센 사람만 하는 종목이었으면 이게 가능했을까?’</b> 답은 받지 말고 다음 장으로 넘어갑니다.</li>
+<li>기사: 더팩트 「“군위에서 세계로”…소녀들의 질주, NFL 무대에 새겨지다」</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 44%">
+      <div class="eyebrow">2026년 3월</div>
+      <h2>우리 또래가<br>이미 국가대표다</h2>
+      <p class="lead">경북 군위중학교 여학생 11명이 15세 이하 대한민국 대표로 호주에서 열린 국제대회에 나갔다.</p>
+      <p class="caption" style="margin-top:3vh">미식축구를 하지 않는 나라의 중학생이 어떻게?</p>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 600 380" id="trip">
+        <g stroke="var(--chalk)" stroke-width="1" opacity=".12"><line x1="0" y1="95" x2="600" y2="95"/><line x1="0" y1="190" x2="600" y2="190"/><line x1="0" y1="285" x2="600" y2="285"/><line x1="150" y1="0" x2="150" y2="380"/><line x1="300" y1="0" x2="300" y2="380"/><line x1="450" y1="0" x2="450" y2="380"/></g>
+        <text x="312" y="200" class="field-txt" font-size="15" opacity=".35">적도</text>
+        <path id="tripPath" d="M140 92 Q470 120 470 300" fill="none" stroke="var(--flag)" stroke-width="4" stroke-dasharray="10 9" opacity=".9"/>
+        <circle cx="140" cy="92" r="11" fill="var(--red)"/><circle cx="140" cy="92" r="22" fill="none" stroke="var(--red)" stroke-width="2" class="pulse"/>
+        <text x="140" y="60" class="field-txt" font-size="28" text-anchor="middle">경북 군위</text>
+        <circle cx="470" cy="300" r="11" fill="var(--flag)"/>
+        <text x="470" y="345" class="field-txt" font-size="28" text-anchor="middle">호주 골드코스트</text>
+        <g id="plane"><path d="M-14 0 L14 0 M2 -10 L8 0 L2 10 M-12 -5 L-8 0 L-12 5" stroke="var(--chalk)" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <text x="40" y="350" class="field-txt" font-size="64" fill="var(--flag)">11<tspan font-size="26" fill="var(--chalk)" dx="8">명 · U-15</tspan></text>
+      </svg>
+      <div class="caption">NFL 플래그풋볼 아시아·태평양 챔피언십, 2026. 3. 19.~22.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 미식축구 vs 플래그풋볼 -->
+<section class="slide" data-notes="
+<li><b>목표</b>: 미식축구와 무엇이 다른지 딱 네 줄로. 그래서 우리도, 여학생도, 중학생도 할 수 있다.</li>
+<li>미식축구는 11명이 몸으로 넘어뜨려(태클) 공격을 멈춥니다. 그래서 헬멧과 보호대가 필요하고, 체격과 힘이 중요합니다.</li>
+<li>플래그풋볼은 5명. 허리 양쪽 플래그를 뽑으면 그 공격이 멈춥니다. 장비는 플래그 벨트 하나.</li>
+<li>마지막 줄 ‘?’는 일부러 비워 둡니다. <b>‘몸싸움이 없으면 뭘로 이길까?’</b> 이 질문의 답은 마지막 장에서 공개합니다.</li>">
+  <div class="eyebrow">무엇이 다를까</div>
+  <h2>미식축구 vs 플래그풋볼</h2>
+  <div class="vs">
+    <div class="k"></div><div class="h">미식축구</div><div class="h ff">플래그풋볼</div>
+    <div class="k">한 팀</div><div>11명</div><div class="ff"><b>5명</b></div>
+    <div class="k">공격을 멈추는 법</div><div>태클: 몸으로 넘어뜨린다</div><div class="ff"><b>허리의 플래그를 뽑는다</b></div>
+    <div class="k">장비</div><div>헬멧, 어깨 보호대</div><div class="ff"><b>플래그 벨트 하나</b></div>
+    <div class="k">이기는 힘</div><div>체격과 힘</div><div class="ff"><span class="qmark pulse">?</span></div>
+  </div>
+</section>
+
+<!-- 5 경기장 -->
+<section class="slide" data-notes="
+<li><b>목표</b>: 경기장은 선 두 개만 기억하면 됩니다. 엔드존과 하프라인.</li>
+<li>엔드존: 양 끝의 득점 구역. 공을 든 채 들어가거나 엔드존 안에서 받으면 득점.</li>
+<li>하프라인: 공격이 넘어야 할 첫 목표(다음 장에서 설명).</li>
+<li>학교에서는 운동장 한쪽에 콘 8~10개면 경기장을 만들 수 있다고 알려 주면 ‘우리도 할 수 있겠다’는 느낌을 줍니다.</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 32%">
+      <div class="eyebrow">경기장</div>
+      <h2>선은 두 개만<br>기억하자</h2>
+      <p class="lead"><span class="yellow">엔드존</span>에 공을 가지고 들어가면 득점.<br><b>하프라인</b>은 첫 번째 목표.</p>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 700 330" id="fieldMap">
+        <rect x="20" y="30" width="660" height="260" fill="var(--turf)" stroke="var(--chalk)" stroke-width="3"/>
+        <rect x="20" y="30" width="80" height="260" fill="var(--flag)" opacity=".75"/>
+        <rect x="600" y="30" width="80" height="260" fill="var(--flag)" opacity=".75"/>
+        <text x="60" y="160" class="field-txt" font-size="24" text-anchor="middle" fill="var(--ink)" transform="rotate(-90 60 160)">엔드존</text>
+        <text x="640" y="160" class="field-txt" font-size="24" text-anchor="middle" fill="var(--ink)" transform="rotate(90 640 160)">엔드존</text>
+        <g stroke="var(--chalk)" stroke-width="1.5" opacity=".28"><line x1="200" y1="30" x2="200" y2="290"/><line x1="275" y1="30" x2="275" y2="290"/><line x1="425" y1="30" x2="425" y2="290"/><line x1="500" y1="30" x2="500" y2="290"/></g>
+        <line x1="350" y1="30" x2="350" y2="290" stroke="var(--chalk)" stroke-width="5"/>
+        <text x="350" y="20" class="field-txt" font-size="22" text-anchor="middle">하프라인</text>
+        <g fill="#F28C28"><path d="M20 300l8 14h-16z"/><path d="M100 300l8 14h-16z"/><path d="M350 300l8 14h-16z"/><path d="M600 300l8 14h-16z"/><path d="M680 300l8 14h-16z"/></g>
+      </svg>
+      <div class="caption">운동장 한쪽에 콘 몇 개면 경기장이 된다</div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 규칙 ① 4번의 기회 -->
+<section class="slide" data-notes="
+<li><b>규칙 ①</b> 공격팀은 <b>4번의 기회</b> 안에 하프라인을 넘어야 합니다. 넘으면 다시 4번이 생기고, 그다음 4번 안에 엔드존까지. 못 가면 공격권이 상대에게 넘어갑니다.</li>
+<li>플래그가 뽑힌 자리가 다음 공격의 <b>출발선</b>이 됩니다. 시작 전에는 양 팀 모두 이 선을 넘을 수 없습니다.</li>
+<li>애니메이션: 3번째는 실패(공 떨어짐)해도 기회가 남는 것, 4번째에 하프라인을 넘으면 기회가 4번 새로 생기는 것을 보여 줍니다. R 키로 다시.</li>
+<li>축구·농구와 다른 점: 공이 계속 흐르지 않고, <b>한 번 하고 멈춘다.</b> 그래서 매번 작전을 짤 수 있습니다.</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 32%">
+      <div class="eyebrow">규칙 ①</div>
+      <h2><span class="yellow">4번</span>의 기회</h2>
+      <p class="lead" style="font-size:clamp(17px,1.9vw,30px)">4번 안에 <b>하프라인</b>을 넘으면 다시 4번.<br>플래그 뽑힌 자리가 <b>다음 출발선.</b></p>
+      <div style="margin-top:2.5vh" id="downChips">
+        <span class="chip ghost">1st</span><span class="chip ghost">2nd</span><span class="chip ghost">3rd</span><span class="chip ghost">4th</span>
+      </div>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 700 320" id="animDowns">
+        <defs><pattern id="hash" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="none"/></pattern></defs>
+        <rect x="20" y="40" width="660" height="240" fill="var(--turf)" stroke="var(--chalk)" stroke-width="3"/>
+        <rect x="20" y="40" width="70" height="240" fill="var(--flag)" opacity=".75"/>
+        <rect x="610" y="40" width="70" height="240" fill="var(--flag)" opacity=".75"/>
+        <text x="55" y="165" class="field-txt" font-size="22" text-anchor="middle" transform="rotate(-90 55 165)" fill="var(--ink)">END ZONE</text>
+        <text x="645" y="165" class="field-txt" font-size="22" text-anchor="middle" transform="rotate(90 645 165)" fill="var(--ink)">END ZONE</text>
+        <g stroke="var(--chalk)" stroke-width="1.5" opacity=".35">
+          <line x1="155" y1="40" x2="155" y2="280"/><line x1="220" y1="40" x2="220" y2="280"/><line x1="285" y1="40" x2="285" y2="280"/>
+          <line x1="415" y1="40" x2="415" y2="280"/><line x1="480" y1="40" x2="480" y2="280"/><line x1="545" y1="40" x2="545" y2="280"/>
+        </g>
+        <line x1="350" y1="40" x2="350" y2="280" stroke="var(--chalk)" stroke-width="4"/>
+        <text x="350" y="30" class="field-txt" font-size="20" text-anchor="middle">하프라인</text>
+        <!-- 스크리미지 라인 -->
+        <g id="losGroup">
+          <line id="los" x1="130" y1="40" x2="130" y2="280" stroke="var(--red)" stroke-width="5" stroke-dasharray="10 8"/>
+          <text id="losTxt" x="130" y="305" class="field-txt" font-size="18" text-anchor="middle" fill="var(--red)">출발선</text>
+        </g>
+        <!-- 공 -->
+        <g id="ballD">
+          <ellipse cx="0" cy="0" rx="20" ry="12" fill="var(--ball)" stroke="var(--chalk)" stroke-width="2"/>
+        </g>
+        <text id="downTxt" x="350" y="200" class="field-txt" font-size="64" text-anchor="middle" fill="var(--flag)" opacity="0"></text>
+      </svg>
+      <div class="caption" id="downCap">공격 시작. 4번 안에 하프라인을 넘어라.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 규칙 ② 뽑히면 정지 -->
+<section class="slide" data-notes="
+<li><b>규칙 ②</b> 공을 든 선수의 플래그가 뽑히면 <b>그 자리에서 정지.</b> 그 자리가 다음 출발선입니다.</li>
+<li>밀기·잡기·부딪히기·막아서기 모두 반칙. 공을 든 선수가 손이나 팔로 플래그를 가리는 것(플래그 가딩)도 반칙입니다.</li>
+<li>애니메이션(약 8초): 추격 → 뽑는 순간 화면이 당겨짐 → 수비가 플래그를 들어 보임 → 0.3배속 다시 보기 → STOP → 멈춘 자리에 다음 출발선. STOP이 찍힐 때 ‘뽑히면 그 자리에서 정지’를 말해 주세요.</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 38%">
+      <div class="eyebrow">규칙 ②</div>
+      <h2>뽑히면 정지,<br>몸은 안 닿는다</h2>
+      <p class="lead">공을 든 선수의 플래그가 뽑히면 <span class="redt">그 자리에서 멈춘다.</span></p>
+      <div style="margin-top:2.6vh">
+        <span class="chip red">밀기 ✕</span><span class="chip red">잡기 ✕</span><span class="chip red">부딪히기 ✕</span><span class="chip red">플래그 가리기 ✕</span>
+      </div>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 520 300" id="animPull">
+        <defs><clipPath id="pullClip"><rect width="520" height="300"/></clipPath></defs>
+        <g clip-path="url(#pullClip)">
+        <g id="cam">
+          <line x1="-200" y1="277" x2="720" y2="277" stroke="var(--chalk)" stroke-width="2" opacity=".35"/>
+          <g id="nextLos" opacity="0"><line x1="0" y1="40" x2="0" y2="286" stroke="var(--red)" stroke-width="4" stroke-dasharray="10 8"/></g>
+          <ellipse id="shR" cx="0" cy="277" rx="20" ry="4" fill="#000" opacity=".28"/>
+          <ellipse id="shC" cx="0" cy="277" rx="20" ry="4" fill="#000" opacity=".28"/>
+          <g id="runner">
+            <g class="speed" id="spd"><line x1="-40" y1="-30" x2="-22" y2="-30"/><line x1="-46" y1="-10" x2="-24" y2="-10"/><line x1="-38" y1="10" x2="-22" y2="10"/></g>
+            <circle cx="0" cy="-46" r="14" fill="var(--chalk)"/>
+<rect x="-12" y="-32" width="24" height="44" rx="10" fill="var(--chalk)"/>
+<rect class="armL" x="-20" y="-28" width="8" height="30" rx="4" fill="var(--chalk)"/>
+<rect class="armR" x="12" y="-28" width="8" height="30" rx="4" fill="var(--chalk)"/>
+<rect class="legL" x="-11" y="10" width="9" height="36" rx="4" fill="var(--chalk)"/>
+<rect class="legR" x="2" y="10" width="9" height="36" rx="4" fill="var(--chalk)"/>
+            <rect x="-16" y="6" width="32" height="7" rx="3" fill="var(--ink)"/>
+            <rect x="-22" y="8" width="7" height="34" rx="2" fill="var(--flag)"/>
+            <rect id="flagR" x="15" y="8" width="7" height="34" rx="2" fill="var(--flag)"/>
+            <ellipse cx="18" cy="-20" rx="13" ry="8" fill="var(--ball)" transform="rotate(-25 18 -20)"/>
+          </g>
+          <g id="chaser">
+            <circle cx="0" cy="-46" r="14" fill="var(--muted)"/>
+<rect x="-12" y="-32" width="24" height="44" rx="10" fill="var(--muted)"/>
+<rect class="armL" x="-20" y="-28" width="8" height="30" rx="4" fill="var(--muted)"/>
+<g id="reach" style="transform-box:fill-box;transform-origin:50% 0"><rect id="flagHand" x="13" y="-4" width="7" height="32" rx="2" fill="var(--flag)" opacity="0"/><rect x="12" y="-28" width="8" height="30" rx="4" fill="var(--muted)"/></g>
+<rect class="legL" x="-11" y="10" width="9" height="36" rx="4" fill="var(--muted)"/>
+<rect class="legR" x="2" y="10" width="9" height="36" rx="4" fill="var(--muted)"/>
+            <rect x="-16" y="6" width="32" height="7" rx="3" fill="var(--ink)"/>
+            <rect x="-22" y="8" width="7" height="34" rx="2" fill="var(--red)"/>
+            <rect x="15" y="8" width="7" height="34" rx="2" fill="var(--red)"/>
+          </g>
+          <g id="burst" stroke="var(--flag)" stroke-width="4" stroke-linecap="round" opacity="0"></g>
+        </g>
+        </g>
+        <g id="bars" opacity="0"><rect width="520" height="22" fill="#000"/><rect y="278" width="520" height="22" fill="#000"/></g>
+        <g id="replayTag" opacity="0"><rect x="14" y="32" width="128" height="30" rx="6" fill="var(--red)"/><text x="78" y="53" class="field-txt" font-size="17" text-anchor="middle">다시 보기 ×0.3</text></g>
+        <text id="losLbl" x="0" y="30" class="field-txt" font-size="18" text-anchor="middle" fill="var(--red)" opacity="0">다음 출발선</text>
+        <text id="stopTxt" x="150" y="140" class="field-txt" font-size="76" fill="var(--red)" text-anchor="middle" opacity="0">STOP</text>
+        <rect id="cut" width="520" height="300" fill="#000" opacity="0" pointer-events="none"/>
+      </svg>
+      <div class="caption">플래그 뽑힘 → 그 자리에서 정지 → 그 자리가 다음 출발선</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 규칙 ③ 패스 -->
+<section class="slide" data-notes="
+<li><b>규칙 ③</b> 앞으로 던지는 패스는 <b>한 플레이에 한 번</b>, 그리고 <b>출발선 뒤에서만.</b></li>
+<li>왼쪽: 쿼터백이 출발선 뒤에서 던짐 → 정상. 오른쪽: 출발선을 넘어간 다음 던짐 → 반칙.</li>
+<li>공을 받은 선수가 또 앞으로 던지는 것도 반칙(앞 패스는 한 번만). 뒤나 옆으로 건네주는 것은 됩니다. 1차시에서는 여기까지만.</li>
+<li>더 자세한 규칙(러셔, 노런존 등)은 운동장에서 게임하면서 필요할 때 배웁니다.</li>">
+  <div class="eyebrow">규칙 ③</div>
+  <h2>앞 패스는 출발선 뒤에서, 한 번만</h2>
+  <div class="pair">
+    <div class="svgwrap"><h3 class="yellow">출발선 뒤에서 던지기</h3><svg viewBox="0 0 700 320" data-play="passOk"></svg></div>
+    <div class="svgwrap"><h3 class="redt">선을 넘어가서 던지기</h3><svg viewBox="0 0 700 320" data-play="passNo"></svg></div>
+  </div>
+</section>
+
+<!-- 9 점수 -->
+<section class="slide" data-notes="
+<li>터치다운 6점: 공을 든 채 엔드존에 들어가거나, 엔드존 안에서 패스를 받으면.</li>
+<li>추가점: 터치다운 후 한 번 더 공격합니다. 가까운 곳에서 성공하면 1점, 먼 곳에서 성공하면 2점. 어느 쪽에 도전할지는 팀이 고릅니다.</li>
+<li>거리는 대회마다 다릅니다. 수업 규칙은 운동장에서 정하면 됩니다.</li>
+<li>‘터치다운 하고 끝이 아니네?’ 하는 반응이 나오면 성공.</li>">
+  <div class="eyebrow">점수</div>
+  <h2>터치다운 하고 끝이 아니다</h2>
+  <div class="board" style="grid-template-columns:1.1fr 1fr 1fr">
+    <div class="cell"><div class="num">6</div><h3>터치다운</h3><p>공을 든 채 엔드존에 들어가거나, 엔드존 안에서 받으면.</p></div>
+    <div class="cell"><div class="num plain">+1</div><h3>추가점, 가까이서</h3><p>터치다운 뒤 한 번 더. 가까운 곳에서 성공하면 1점.</p></div>
+    <div class="cell"><div class="num plain">+2</div><h3>추가점, 멀리서</h3><p>더 먼 곳에서 성공하면 2점. 어디서 할지는 팀이 고른다.</p></div>
+  </div>
+</section>
+
+<!-- 10 포지션 -->
+<section class="slide" data-notes="
+<li>공격 5명, 역할은 3개. 이름은 이 정도만 알면 됩니다.</li>
+<li><b>센터(C)</b>: 다리 사이로 공을 뒤로 넘겨(스냅) 플레이를 시작하고, 자기도 뛰어나갑니다.</li>
+<li><b>쿼터백(QB)</b>: 공을 받아서 던지거나 건네주는 사람.</li>
+<li><b>리시버(WR)</b>: 뛰어가서 받는 사람. 3명.</li>
+<li>핵심 문장: <b>‘던지는 사람 빼고 4명이 전부 뛰고, 전부 받을 수 있다.’</b> 잘 못 던지고 잘 못 받아도 할 일이 있다는 뜻입니다.</li>
+<li>애니메이션: 스냅 → 센터까지 4명이 각자 다른 길로 → 패스. R 키로 다시.</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 36%">
+      <div class="eyebrow">공격 5명, 역할은 3개</div>
+      <div class="roles">
+        <div class="role"><span class="tok">C</span><div><h3>센터<small>1명</small></h3><p>공을 뒤로 넘기고, 자기도 뛰어나간다</p></div></div>
+        <div class="role"><span class="tok">QB</span><div><h3>쿼터백<small>1명</small></h3><p>던지는 사람</p></div></div>
+        <div class="role"><span class="tok wr">WR</span><div><h3>리시버<small>3명</small></h3><p>뛰어가서 받는 사람</p></div></div>
+      </div>
+      <p class="caption" style="margin-top:2.6vh">던지는 사람 빼고 <b>4명이 다 뛰고, 다 받을 수 있다.</b></p>
+    </div>
+    <div class="col svgwrap">
+      <svg viewBox="0 0 700 320" data-play="roles"></svg>
+      <div class="caption">스냅 → 4명이 각자 다른 길로 → 패스</div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 영상 -->
+<section class="slide" data-notes="
+<li>영상 보기 전에 미션을 줍니다. <b>‘던지는 사람 말고, 공 없는 사람들이 어디로 뛰는지 봐.’</b></li>
+<li>영상은 2~3분이면 충분합니다. 영상이 안 나오면 파일의 VIDEO_URL에 다른 유튜브 주소를 넣으세요. (검색어 예: IFAF flag football world championships highlights)</li>
+<li>보고 나서 한 명만 물어봅니다. <b>‘공 없는 사람들은 뭘 하던?’</b> ‘수비를 끌고 다녔다’ 같은 답이 나오면 다음 장으로.</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 32%">
+      <div class="eyebrow">보기 전에 미션</div>
+      <h2>던지는 사람 말고,<br><span class="yellow">공 없는 사람</span>을 봐</h2>
+      <p class="lead" style="font-size:clamp(17px,1.9vw,28px)">어디로 뛰는지, 왜 거기로 뛰는지.</p>
+    </div>
+    <div class="col"><div class="video" id="videoBox">영상 주소를 넣으면 여기서 재생됩니다.<br>(파일 맨 아래 VIDEO_URL)</div></div>
+  </div>
+</section>
+
+<!-- 12 맞히기 1 -->
+<section class="slide quiz" data-steps="1" data-notes="
+<li><b>진행</b>: 멈춘 화면을 보여 주고 <b>‘공을 어디로 던지면 좋을까? 화면에서 짚어 봐.’</b> 2~3명이 앞에 나와 손가락으로 짚게 해도 좋습니다.</li>
+<li>노란 점선은 공격이 뛸 길, 빨간 D는 수비입니다. 수비는 각자 맡은 공격수를 따라갑니다.</li>
+<li>→ 를 누르면 플레이가 시작됩니다.</li>
+<li><b>정답</b>: 위쪽 바깥 리시버가 깊게 뛰면 그 수비가 따라가서, 원래 수비가 있던 자리가 빕니다. 안쪽 리시버가 그 빈 곳으로 들어가 받습니다.</li>
+<li>확인 질문: <b>‘공을 받은 선수가 빨랐어? 아니면 다른 선수가 자리를 비워 줬어?’</b> 공을 안 받은 선수가 공간을 만들었다는 게 핵심.</li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 32%">
+      <span class="tag">빈 곳 맞히기 1</span>
+      <h2>공을 어디로<br>던질까?</h2>
+      <p class="quiz-q ask">노란 점선이 공격이 뛸 길.<br>수비는 맡은 사람을 따라간다.</p>
+      <p class="quiz-q answer"><span class="yellow">수비가 따라가면, 그 자리가 빈다.</span><br>공을 안 받은 선수가 공간을 만들었다.</p>
+    </div>
+    <div class="col svgwrap"><svg viewBox="0 0 700 320" data-play="q1"></svg><div class="caption" data-ask="멈춘 화면 · 다음을 누르면 플레이 시작" data-ans="위쪽 리시버가 수비를 데리고 나간 자리로 패스"></div></div>
+  </div>
+</section>
+
+<!-- 13 맞히기 2 -->
+<section class="slide quiz" data-steps="1" data-notes="
+<li>이번에는 수비가 사람을 따라가지 않고 <b>자기 구역</b>을 지킵니다(지역 수비).</li>
+<li>양쪽 리시버가 가운데로 비스듬히 파고들면, 구역을 지키던 수비도 공을 따라 가운데로 좁혀 들어옵니다.</li>
+<li><b>정답</b>: 수비가 가운데로 몰린 사이 아래쪽 바깥이 빕니다. 스냅하고 나온 센터가 그 바깥으로 나가 받습니다.</li>
+<li>빨간 D 하나가 쿼터백에게 달려드는 것(러셔)도 보여 줍니다. 그래서 쿼터백은 오래 고민할 시간이 없습니다. 러셔 규칙은 운동장에서 배웁니다.</li>
+<li>확인 질문: <b>‘센터가 공을 받을 거라고 예상한 사람?’</b></li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 32%">
+      <span class="tag">빈 곳 맞히기 2</span>
+      <h2>이번엔<br>어디가 빌까?</h2>
+      <p class="quiz-q ask">수비는 자기 구역을 지킨다.<br>양쪽 리시버는 가운데로 파고든다.</p>
+      <p class="quiz-q answer"><span class="yellow">가운데로 몰리면, 바깥이 빈다.</span><br>스냅한 센터도 받을 수 있다.</p>
+    </div>
+    <div class="col svgwrap"><svg viewBox="0 0 700 320" data-play="q2"></svg><div class="caption" data-ask="멈춘 화면 · 다음을 누르면 플레이 시작" data-ans="수비가 가운데로 몰린 사이, 센터가 바깥에서 받는다"></div></div>
+  </div>
+</section>
+
+<!-- 14 맞히기 3 -->
+<section class="slide quiz" data-steps="1" data-notes="
+<li>아래쪽에 리시버 2명이 같은 쪽으로 뜁니다. 한 명은 짧게, 한 명은 길게. 그 구역을 지키는 수비는 1명.</li>
+<li>질문: <b>‘수비 한 명이 두 명을 다 막을 수 있을까?’</b></li>
+<li><b>정답</b>: 수비가 짧은 리시버에게 다가가면 뒤쪽 긴 리시버가 빕니다. (반대로 수비가 뒤로 물러나면 짧은 쪽이 빕니다.) 수비 한 명을 공격 두 명이 고민하게 만드는 것.</li>
+<li>마무리 질문으로 넘어갑니다: <b>‘세 문제 모두, 공을 받은 선수가 빨라서 빈 거야?’</b></li>">
+  <div class="row">
+    <div class="col" style="flex:0 0 32%">
+      <span class="tag">빈 곳 맞히기 3</span>
+      <h2>수비 한 명,<br>공격 두 명</h2>
+      <p class="quiz-q ask">아래쪽 두 리시버는 하나는 짧게, 하나는 길게.<br>그쪽 수비는 한 명뿐.</p>
+      <p class="quiz-q answer"><span class="yellow">하나를 막으면, 다른 하나가 빈다.</span><br>수비가 앞으로 나오면 뒤가 빈다.</p>
+    </div>
+    <div class="col svgwrap"><svg viewBox="0 0 700 320" data-play="q3"></svg><div class="caption" data-ask="멈춘 화면 · 다음을 누르면 플레이 시작" data-ans="수비가 짧은 쪽으로 나온 사이, 뒤쪽 리시버에게"></div></div>
+  </div>
+</section>
+
+<!-- 15 정답과 다음 시간 -->
+<section class="slide final" data-steps="1" data-notes="
+<li>먼저 질문만 띄웁니다. <b>‘몸싸움도 없고, 체격도 상관없다면 이 게임은 뭘로 이길까?’</b> 4번째 장의 ‘?’를 여기서 회수합니다.</li>
+<li>답을 몇 개 받은 뒤 → 를 누르면 정답이 나옵니다. <b>빈 곳을 먼저 보는 팀이 이긴다.</b> 그래서 군위중 학생들도 국가대표가 될 수 있었습니다.</li>
+<li>다음 시간 예고: 운동장에서 플래그를 차고 직접 빈 곳을 만들어 봅니다. 규칙을 다 몰라도 됩니다. 뛰면서 배웁니다.</li>">
+  <div class="before">
+    <div class="eyebrow">마지막 질문</div>
+    <h2>몸싸움도 없고, 체격도 상관없다면<br>뭘로 이길까?</h2>
+  </div>
+  <div class="after">
+    <h1 style="margin-top:2vh"><span class="yellow">빈 곳을 먼저 보는 팀</span>이 이긴다.</h1>
+    <p class="lead" style="margin-top:3vh;max-width:none">다음 시간, 운동장에서 직접 빈 곳을 만들어 본다.</p>
+    <div style="margin-top:2.4vh"><span class="chip">운동화</span><span class="chip">물</span><span class="chip ghost">규칙은 뛰면서 배운다</span></div>
+  </div>
+</section>
+
+</div>
+
+<div class="hud"><div id="pg" style="white-space:nowrap">1 / 15</div><div class="drive" id="drive" role="group" aria-label="슬라이드 이동"><i class="ez l"></i><i class="ez r"></i><span class="ball" id="driveBall"></span></div><div class="hint">→ 다음&nbsp;&nbsp;← 이전&nbsp;&nbsp;N 메모&nbsp;&nbsp;R 다시&nbsp;&nbsp;F 전체화면</div></div>
+<aside class="notes" id="notes" aria-label="교사 메모"><h4>교사 메모</h4><ul id="noteList"></ul></aside>
+
+<script>
+// ===== 설정 =====
+const VIDEO_URL = "https://youtu.be/piUyFwiZe_Y";   // 유튜브 주소를 그대로 넣으면 됩니다
+// ==================
+
+const slides=[...document.querySelectorAll('.slide')];
+let cur=0, step=0;
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+let timers=[]; const T=(f,ms)=>timers.push(setTimeout(f,ms));
+const clamp=v=>Math.max(0,Math.min(1,v));
+const outQ=t=>1-Math.pow(1-clamp(t),5);
+const inOut=t=>{t=clamp(t);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
+const reduceMotion=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ----- 진행 표시(공이 엔드존까지 전진) -----
+const drive=$('drive'), driveBall=$('driveBall');
+const ydPos=i=> i===slides.length-1 ? 96.5 : 10+i*(78/(slides.length-2));
+const yds=slides.map((s,i)=>{const b=document.createElement('button');b.type='button';b.className='yd';b.style.left=ydPos(i)+'%';
+  b.setAttribute('aria-label',(i+1)+'번째 장');b.onclick=e=>{e.stopPropagation();go(i);};drive.insertBefore(b,driveBall);return b;});
+const notes=$('notes'), noteList=$('noteList');
+
+function go(n){
+  cur=Math.max(0,Math.min(slides.length-1,n)); step=0;
+  slides.forEach((s,i)=>{s.classList.toggle('active',i===cur);s.classList.remove('picked','stepped');});
+  yds.forEach((b,i)=>{b.classList.toggle('done',i<=cur);b.toggleAttribute('aria-current',i===cur);});
+  driveBall.style.left=ydPos(cur)+'%'; driveBall.classList.toggle('td',cur===slides.length-1);
+  $('pg').textContent=(cur+1)+' / '+slides.length;
+  noteList.innerHTML=slides[cur].dataset.notes||'<li>메모 없음</li>';
+  playAnim(cur,0);
+}
+function next(){
+  const s=slides[cur], max=+(s.dataset.steps||0);
+  if(step<max){ step++; playAnim(cur,step); } else go(cur+1);
+}
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();next();}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur-1);}
+  else if(e.key==='n'||e.key==='N')notes.classList.toggle('open');
+  else if(e.key==='r'||e.key==='R')playAnim(cur,step);
+  else if(e.key==='f'||e.key==='F'){try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}catch(_){}}
+});
+$('deck').addEventListener('click',e=>{ if(!e.target.closest('iframe')) next(); });
+$('noteBtn').onclick=()=>notes.classList.toggle('open');
+
+// ----- 영상 -----
+(function(){
+  if(!VIDEO_URL) return;
+  let id=null; const m=VIDEO_URL.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); if(m) id=m[1];
+  $('videoBox').innerHTML = id ? `<iframe src="https://www.youtube.com/embed/${id}?rel=0" title="플래그풋볼 경기 영상" allow="autoplay; fullscreen" allowfullscreen></iframe>` : `<video src="${VIDEO_URL}" controls style="width:100%;height:100%"></video>`;
+})();
+
+// ===== 장마다 애니메이션 =====
+function stopAll(){
+  timers.forEach(clearTimeout); timers=[];
+  if(pullRaf){cancelAnimationFrame(pullRaf);pullRaf=null;}
+  Object.values(plays).forEach(p=>p.stop());
+  if(tripRaf){cancelAnimationFrame(tripRaf);tripRaf=null;}
+}
+function playAnim(i,st){
+  stopAll();
+  const s=slides[i];
+  if(st>0) s.classList.add(s.classList.contains('quiz')||s.classList.contains('final')?'stepped':'picked');
+  if(i===0 && st>0) s.classList.add('picked');
+  if(s.querySelector('#seats')) animSeats();
+  if(s.querySelector('#trip')) animTrip();
+  if(s.querySelector('#animDowns')) animDowns();
+  if(s.querySelector('#animPull')) animPull();
+  s.querySelectorAll('svg[data-play]').forEach(svg=>{
+    const p=plays[svg.dataset.play]; if(!p) return;
+    const quiz=s.classList.contains('quiz');
+    const cap=svg.parentNode.querySelector('.caption[data-ask]');
+    if(quiz){ if(st===0){p.reset(); if(cap) cap.textContent=cap.dataset.ask;} else {p.play(); if(cap) T(()=>cap.textContent=cap.dataset.ans, p.spec.end-400);} }
+    else p.play();
+  });
+}
+
+// ----- 2. 자리 채우기 -----
+function animSeats(){
+  const seats=[...document.querySelectorAll('#seats .seat:not(.open)')];
+  seats.forEach(x=>x.classList.remove('on'));
+  const order=[0,3, 1,4, 2,5]; // 개최국 → 1위권 → 3위
+  order.forEach((k,j)=>T(()=>seats[k].classList.add('on'), reduceMotion()?0:500+j*420));
+}
+
+// ----- 3. 비행 -----
+let tripRaf=null;
+function animTrip(){
+  const path=$('tripPath'), plane=$('plane'), L=path.getTotalLength();
+  const t0=performance.now();
+  function f(now){
+    const p=reduceMotion()?1:outQ((now-t0)/2600), q=Math.min(1,p+.01);
+    const a=path.getPointAtLength(L*p), b=path.getPointAtLength(L*q);
+    const ang=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;
+    plane.setAttribute('transform',`translate(${a.x} ${a.y}) rotate(${ang})`);
+    path.style.strokeDashoffset=0;
+    if(p<1) tripRaf=requestAnimationFrame(f); else tripRaf=null;
+  }
+  tripRaf=requestAnimationFrame(f);
+}
+
+// ----- 6. 4번의 기회 -----
+function animDowns(){
+  const ball=$('ballD'),los=$('los'),losTxt=$('losTxt'),dt=$('downTxt'),cap=$('downCap');
+  const chips=[...document.querySelectorAll('#downChips .chip')];
+  const lg=$('losGroup');
+  const setLos=x=>{lg.style.transform=`translateX(${x-130}px)`;};
+  const setBall=(x,y=160)=>{ball.style.transform=`translate(${x}px, ${y}px)`;};
+  const say=(t,c)=>{dt.textContent=t;dt.setAttribute('opacity',1);cap.textContent=c;};
+  const chip=(n)=>chips.forEach((c,k)=>{c.className='chip'+(k<n?' ':' ghost');});
+  setLos(130); setBall(130); dt.setAttribute('opacity',0); chip(0); cap.textContent='공격 시작. 4번 안에 하프라인을 넘어라.';
+  ball.style.transition='none'; ball.style.transform='translate(130px,160px)'; lg.style.transition='none'; lg.style.transform='translateX(0)';
+  T(()=>{ball.style.transition='transform .9s ease'; lg.style.transition='transform .6s ease';},50);
+  // 1st
+  T(()=>{chip(1);say('1st','1번째 시도');},400);
+  T(()=>setBall(215,110),900);
+  T(()=>{setLos(215);cap.textContent='플래그 뽑힘. 뽑힌 자리가 다음 출발선.';},1900);
+  // 2nd
+  T(()=>{chip(2);say('2nd','2번째 시도');},2900);
+  T(()=>setBall(265,210),3400);
+  T(()=>{setLos(265);cap.textContent='조금 전진. 출발선 이동.';},4400);
+  // 3rd fail
+  T(()=>{chip(3);say('3rd','3번째 시도');},5400);
+  T(()=>setBall(330,90),5900);
+  T(()=>{setBall(265,160);say('3rd ✕','공 떨어짐. 그래도 기회는 남아 있다. 출발선 그대로.');},6900);
+  // 4th success
+  T(()=>{chip(4);say('4th','4번째 시도, 마지막 기회');},8200);
+  T(()=>setBall(400,150),8700);
+  T(()=>{setLos(400);chip(1);say('1st!','하프라인 통과! 기회 4번이 다시 생긴다.');},9700);
+}
+
+// ----- 7. 플래그 뽑기 -----
+let pullRaf=null;
+function animPull(){
+  if(pullRaf) cancelAnimationFrame(pullRaf);
+  const NS='http://www.w3.org/2000/svg';
+  const R=$('runner'),C=$('chaser'),cam=$('cam'),reach=$('reach'),flagR=$('flagR'),flagHand=$('flagHand'),burst=$('burst');
+  const shR=$('shR'),shC=$('shC'),spd=$('spd'),stop=$('stopTxt'),los=$('nextLos'),losLbl=$('losLbl'),bars=$('bars'),tag=$('replayTag'),cut=$('cut');
+  const limbs=el=>({L:el.querySelector('.legL'),R:el.querySelector('.legR'),aL:el.querySelector('.armL'),aR:el.querySelector('.armR')});
+  const rl=limbs(R), cl=limbs(C);
+  const clamp=v=>Math.max(0,Math.min(1,v));
+  const outQ=t=>1-Math.pow(1-clamp(t),5);                    // 강한 감속 (cubic-bezier .23,1,.32,1 근사)
+  const inOut=t=>{t=clamp(t);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
+  const Y=230, PULL=2150, PX=352, FX=PX+18, FY=Y+20, STOPX=PX+30;
+  if(!burst.childElementCount){
+    for(let k=0;k<7;k++){const l=document.createElementNS(NS,'line');l.dataset.a=-150+k*50;burst.appendChild(l);}
+  }
+  const rot=(el,d)=>{ if(el) el.style.transform=`rotate(${d}deg)`; };
+  const gait=(lm,ph,amp)=>{const a=Math.sin(ph)*amp; rot(lm.L,a); rot(lm.R,-a); rot(lm.aL,-a*.9); rot(lm.aR,a*.9);};
+  const pose=(el,x,y,r)=>el.setAttribute('transform',`translate(${x} ${y}) rotate(${r})`);
+
+  // 장면 시간 s(ms)를 받아 그 순간의 모습을 그린다 (다시 보기는 같은 함수를 느리게 돌림)
+  function scene(s){
+    const running=s<PULL;
+    // 공격수: 일정 속도 → 뽑힌 뒤 미끄러지며 정지
+    let rx, rr=0;
+    if(running) rx=80+(PX-80)*(s/PULL);
+    else if(s<PULL+300) rx=PX;
+    else { const e=outQ((s-PULL-300)/900); rx=PX+30*e; rr=-12*(1-e)-3*e; }
+    // 수비: 뒤에서 가속해 따라붙음
+    const cx=running? -20+(PX-20-46)*inOut(s/PULL) : PX-46;
+    const phR=s/165*Math.PI, phC=s/150*Math.PI;
+    const bobR=running? -Math.abs(Math.sin(phR))*4 : 0, bobC=running? -Math.abs(Math.sin(phC))*4 : 0;
+    pose(R,rx,Y+bobR,rr); pose(C,cx,Y+bobC,0);
+    shR.setAttribute('cx',rx); shC.setAttribute('cx',cx);
+    shR.setAttribute('rx',running?16+Math.abs(Math.sin(phR))*5:20); shC.setAttribute('rx',running?16+Math.abs(Math.sin(phC))*5:20);
+    gait(rl, phR, running?34:0);
+    gait({L:cl.L,R:cl.R,aL:cl.aL}, phC, running?34:0);
+    // 속도선
+    const sp=(s%300)/300; spd.style.opacity=running?.6*(1-sp):0; spd.setAttribute('transform',`translate(${-18*sp} 0)`);
+    // 팔 뻗기 → 뽑기 → 플래그 들어 보이기
+    let ra=0;
+    if(s>1900&&s<PULL) ra=-70*outQ((s-1900)/250);
+    else if(s>=PULL&&s<PULL+300) ra=-70;
+    else if(s>=PULL+300) ra=-70-95*outQ((s-PULL-300)/700) + (s>PULL+1000? Math.sin((s-PULL-1000)/180)*4 : 0);
+    reach.style.transform=`rotate(${ra}deg)`;
+    flagR.setAttribute('opacity',s<PULL?1:0); flagHand.setAttribute('opacity',s<PULL?0:1);
+    // 충돌 지점 터짐 (전체 번쩍임 대신 그 자리만)
+    const bp=(s-PULL)/380;
+    if(bp>=0&&bp<1){ burst.setAttribute('opacity',1-bp);
+      [...burst.children].forEach(l=>{const a=l.dataset.a*Math.PI/180,r1=10+22*outQ(bp),r2=r1+16*(1-bp);
+        l.setAttribute('x1',FX+r1*Math.cos(a));l.setAttribute('y1',FY+r1*Math.sin(a));l.setAttribute('x2',FX+r2*Math.cos(a));l.setAttribute('y2',FY+r2*Math.sin(a));});
+    } else burst.setAttribute('opacity',0);
+  }
+  const camera=(z,dx=0,dy=0)=>cam.setAttribute('transform',`translate(${FX+dx} ${FY+dy}) scale(${z}) translate(${-FX} ${-FY})`);
+  const cutFlash=(t,at)=>{const d=Math.abs(t-at); return d<140? .85*(1-d/140):0;};
+
+  // 시작 상태
+  [stop,los,losLbl,bars,tag].forEach(el=>el.setAttribute('opacity',0)); cut.setAttribute('opacity',0);
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const END=7600;
+  const t0=performance.now();
+  function frame(now){
+    const t=reduce?END:now-t0;
+    // 타임라인(ms): 0~2150 추격 / 2150 뽑힘·화면 당김 / ~3350 정지·플래그 들기 / 3700~6200 다시 보기(0.3배속) / 6400 STOP / 6900 출발선
+    let s, z=1, sx=0, sy=0, replay=false;
+    if(t<3700){ s=t;
+      if(t>=PULL) z = t<2600 ? 1+.3*outQ((t-PULL)/250) : 1.3-.3*inOut((t-2600)/700);
+    } else if(t<6200){ replay=true; s=1750+(t-3700)*.34; z=1.5; }
+    else { s=3400; }
+    scene(s);
+    if(t>6400&&t<6560){ const k=(1-(t-6400)/160)*3; sx=Math.sin(t/12)*k; sy=Math.cos(t/9)*k; }
+    camera(z,sx,sy);
+    bars.setAttribute('opacity',replay?1:0); tag.setAttribute('opacity',replay?(Math.sin(t/220)>-.6?1:.35):0);
+    cut.setAttribute('opacity',Math.max(cutFlash(t,3700),cutFlash(t,6200)));
+    // STOP: 도장처럼 쿵
+    const sp=clamp((t-6400)/280);
+    stop.setAttribute('opacity',t<6400?0:Math.min(1,sp*2));
+    stop.setAttribute('transform',`translate(150 112) rotate(${-6*outQ(sp)}) scale(${1.4-.4*outQ(sp)}) translate(-150 -112)`);
+    // 멈춘 자리에 다음 출발선 (아래에서 위로 그어짐)
+    const lp=outQ((t-6900)/600);
+    los.setAttribute('opacity',t<6900?0:1);
+    los.setAttribute('transform',`translate(${STOPX} 286) scale(1 ${lp}) translate(0 -286)`);
+    losLbl.setAttribute('x',STOPX); losLbl.setAttribute('opacity',clamp((t-7200)/300));
+    if(t<END) pullRaf=requestAnimationFrame(frame); else pullRaf=null;
+  }
+  pullRaf=requestAnimationFrame(frame);
+}
+
+// ===== 경기장 플레이 엔진 (8·10·12·13·14번째 장) =====
+// 좌표: 가로 700 × 세로 320, 공격은 오른쪽으로. 출발선 x=200.
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function makePlay(svg,spec){
+  const uid='a'+Math.random().toString(36).slice(2,7);
+  const defs=el('defs',{},svg);
+  const mk=el('marker',{id:uid,viewBox:'0 0 10 10',refX:6,refY:5,markerWidth:5,markerHeight:5,orient:'auto-start-reverse'},defs);
+  el('path',{d:'M0 0 L10 5 L0 10 z',fill:'var(--flag)'},mk);
+  el('rect',{x:20,y:20,width:660,height:280,fill:'var(--turf)',stroke:'var(--chalk)','stroke-width':3},svg);
+  el('rect',{x:610,y:20,width:70,height:280,fill:'var(--flag)',opacity:.7},svg);
+  el('text',{x:645,y:160,class:'field-txt','font-size':18,'text-anchor':'middle',fill:'var(--ink)',transform:'rotate(90 645 160)'},svg).textContent='엔드존';
+  const g=el('g',{stroke:'var(--chalk)','stroke-width':1.5,opacity:.25},svg);
+  [290,380,470,560].forEach(x=>el('line',{x1:x,y1:20,x2:x,y2:300},g));
+  el('line',{x1:200,y1:20,x2:200,y2:300,stroke:'var(--red)','stroke-width':4,'stroke-dasharray':'10 8'},svg);
+  const space=spec.space? el('ellipse',{cx:spec.space.cx,cy:spec.space.cy,rx:spec.space.rx,ry:spec.space.ry,fill:'var(--flag)',opacity:0},svg):null;
+  const routes=el('g',{fill:'none',stroke:'var(--flag)','stroke-width':3,'stroke-dasharray':'8 7',opacity:spec.hideRoutes?0:.85},svg);
+  const hidden=el('g',{visibility:'hidden'},svg);
+  const actors=spec.actors.map(a=>{
+    if(a.d && a.kind!=='d' && !a.noRoute) el('path',{d:a.d,'marker-end':`url(#${uid})`},routes);
+    const tok=el('g',{transform:`translate(${a.at[0]} ${a.at[1]})`},svg);
+    const fill=a.kind==='d'?'var(--red)':(a.kind==='c'||a.kind==='qb')?'var(--flag)':'var(--chalk)';
+    el('circle',{r:15,fill,stroke:'rgba(13,36,24,.5)','stroke-width':1.5},tok);
+    el('text',{class:'field-txt','font-size':a.lab.length>1?12:14,'text-anchor':'middle',y:5,fill:a.kind==='d'?'#fff':'var(--ink)'},tok).textContent=a.lab;
+    return {...a,tok,path:a.d?el('path',{d:a.d},hidden):null};
+  });
+  const ball=el('g',{},svg); el('ellipse',{rx:11,ry:7,fill:'var(--ball)',stroke:'var(--chalk)','stroke-width':2},ball);
+  const snapPath=el('path',{d:`M${spec.snap.from} L${spec.snap.to}`},hidden);
+  const throwPath=spec.throw? el('path',{d:spec.throw.d},hidden):null;
+  const labels=(spec.labels||[]).map(l=>{const t=el('text',{x:l.x,y:l.y,class:'field-txt','font-size':l.size||22,'text-anchor':l.anchor||'middle',fill:l.color||'var(--flag)',opacity:0},svg);t.textContent=l.text;return {...l,t};});
+  const qb=actors.find(a=>a.kind==='qb');
+  const at=(p,f)=>{const L=p.getTotalLength(),pt=p.getPointAtLength(L*f);return [pt.x,pt.y];};
+  let raf=null;
+  function frame(t){
+    actors.forEach(a=>{ let x=a.at[0],y=a.at[1];
+      if(a.path){ [x,y]=at(a.path, (a.ease==='lin'?clamp:inOut)((t-a.t0)/a.dur)); }
+      a.cur=[x,y]; a.tok.setAttribute('transform',`translate(${x} ${y})`); });
+    const S=spec.snap; let bx,by;
+    if(t<S.t0){ [bx,by]=at(snapPath,0); }
+    else if(t<S.t0+S.dur){ [bx,by]=at(snapPath,inOut((t-S.t0)/S.dur)); }
+    else if(!throwPath||t<spec.throw.t0){ [bx,by]=qb.cur; }
+    else { [bx,by]=at(throwPath,inOut((t-spec.throw.t0)/spec.throw.dur)); }
+    ball.setAttribute('transform',`translate(${bx} ${by})`);
+    if(space) space.setAttribute('opacity', t<spec.space.t0?0:Math.min(.3,(t-spec.space.t0)/1200));
+    labels.forEach(l=>l.t.setAttribute('opacity',clamp((t-l.t0)/300)));
+  }
+  const api={spec,
+    reset(){ api.stop(); frame(0); },
+    play(){ api.stop(); const t0=performance.now();
+      const f=now=>{const t=reduceMotion()?spec.end:now-t0; frame(t); raf= t<spec.end? requestAnimationFrame(f):null;}; raf=requestAnimationFrame(f); },
+    stop(){ if(raf){cancelAnimationFrame(raf);raf=null;} }
+  };
+  api.reset();
+  return api;
+}
+
+const QB=[130,160], C=[200,160];
+const SPECS={
+  // 규칙 ③ 정상 패스
+  passOk:{ end:3200,
+    actors:[{lab:'QB',kind:'qb',at:QB},{lab:'C',kind:'c',at:C,noRoute:true},
+      {lab:'WR',kind:'o',at:[200,90],d:'M200 90 L380 90 L430 70',t0:500,dur:1600}],
+    snap:{from:'200 160',to:'130 160',t0:250,dur:350},
+    throw:{d:'M130 160 Q290 40 428 72',t0:1500,dur:650},
+    labels:[{text:'OK',x:470,y:210,size:76,color:'var(--flag)',t0:2300}] },
+  // 규칙 ③ 반칙: 선을 넘어서 던짐
+  passNo:{ end:3200,
+    actors:[{lab:'QB',kind:'qb',at:QB,d:'M130 160 L250 160',t0:650,dur:900,noRoute:true},{lab:'C',kind:'c',at:C,noRoute:true},
+      {lab:'WR',kind:'o',at:[200,90],d:'M200 90 L380 90 L430 70',t0:500,dur:1600}],
+    snap:{from:'200 160',to:'130 160',t0:250,dur:350},
+    throw:{d:'M250 160 Q350 60 428 72',t0:1600,dur:550},
+    labels:[{text:'반칙',x:470,y:225,size:76,color:'var(--red)',t0:2300},{text:'출발선을 넘었다',x:330,y:290,size:20,color:'var(--red)',t0:1500}] },
+  // 포지션
+  roles:{ end:3600,
+    actors:[{lab:'QB',kind:'qb',at:QB},
+      {lab:'WR',kind:'o',at:[200,55],d:'M200 55 L480 55',t0:600,dur:2400},
+      {lab:'WR',kind:'o',at:[200,105],d:'M200 105 L300 105 L345 145',t0:600,dur:2000},
+      {lab:'C',kind:'c',at:C,d:'M200 160 L210 200 L300 215',t0:650,dur:1900},
+      {lab:'WR',kind:'o',at:[200,265],d:'M200 265 L470 265',t0:600,dur:2400},
+      {lab:'D',kind:'d',at:[290,55],d:'M290 55 L500 62',t0:900,dur:2300},
+      {lab:'D',kind:'d',at:[300,190],d:'M300 190 L320 205',t0:1200,dur:1500},
+      {lab:'D',kind:'d',at:[290,265],d:'M290 265 L490 262',t0:900,dur:2300},
+      {lab:'D',kind:'d',at:[440,150],d:'M440 150 L420 170',t0:1200,dur:1500}],
+    snap:{from:'200 160',to:'130 160',t0:300,dur:350},
+    throw:{d:'M130 160 Q250 60 342 143',t0:2100,dur:700},
+    labels:[{text:'CATCH!',x:360,y:130,size:28,anchor:'start',t0:2800}] },
+  // 맞히기 1: 따라가면 빈다 (사람 수비)
+  q1:{ end:3800,
+    actors:[{lab:'QB',kind:'qb',at:QB},
+      {lab:'WR',kind:'o',at:[200,55],d:'M200 55 L560 55',t0:600,dur:2600},
+      {lab:'WR',kind:'o',at:[200,110],d:'M200 110 L270 110 L335 66',t0:600,dur:1800},
+      {lab:'C',kind:'c',at:C,d:'M200 160 L268 162',t0:650,dur:1300},
+      {lab:'WR',kind:'o',at:[200,265],d:'M200 265 L520 265',t0:600,dur:2600},
+      {lab:'D',kind:'d',at:[285,55],d:'M285 55 L585 58',t0:900,dur:2500},
+      {lab:'D',kind:'d',at:[300,130],d:'M300 130 L315 104',t0:1100,dur:1500},
+      {lab:'D',kind:'d',at:[330,175],d:'M330 175 L292 170',t0:1000,dur:1300},
+      {lab:'D',kind:'d',at:[285,265],d:'M285 265 L545 262',t0:900,dur:2500}],
+    snap:{from:'200 160',to:'130 160',t0:300,dur:350},
+    throw:{d:'M130 160 Q230 20 333 68',t0:2250,dur:700},
+    space:{cx:335,cy:72,rx:62,ry:38,t0:1700},
+    labels:[{text:'수비가 따라가서 빈 곳',x:450,y:120,size:22,t0:2600}] },
+  // 맞히기 2: 가운데로 몰리면 바깥이 빈다 (구역 수비 + 러셔)
+  q2:{ end:3800,
+    actors:[{lab:'QB',kind:'qb',at:QB},
+      {lab:'WR',kind:'o',at:[200,55],d:'M200 55 L250 55 L345 125',t0:600,dur:1800},
+      {lab:'WR',kind:'o',at:[200,110],d:'M200 110 L470 115',t0:600,dur:2400},
+      {lab:'C',kind:'c',at:C,d:'M200 160 L206 196 L305 262',t0:650,dur:1900},
+      {lab:'WR',kind:'o',at:[200,265],d:'M200 265 L250 265 L345 195',t0:600,dur:1800},
+      {lab:'D',kind:'d',at:[300,85],d:'M300 85 L338 100',t0:950,dur:1500},
+      {lab:'D',kind:'d',at:[300,235],d:'M300 235 L338 222',t0:950,dur:1500},
+      {lab:'D',kind:'d',at:[450,160],d:'M450 160 L446 142',t0:1100,dur:1500},
+      {lab:'D',kind:'d',at:[268,145],d:'M268 145 L150 150',t0:500,dur:1700,ease:'lin'}],
+    snap:{from:'200 160',to:'130 160',t0:300,dur:350},
+    throw:{d:'M130 160 Q200 300 300 258',t0:2250,dur:700},
+    space:{cx:305,cy:258,rx:66,ry:34,t0:1700},
+    labels:[{text:'가운데로 몰려서 빈 바깥',x:470,y:290,size:20,t0:2600}] },
+  // 맞히기 3: 한 수비, 두 공격
+  q3:{ end:4000,
+    actors:[{lab:'QB',kind:'qb',at:QB},
+      {lab:'WR',kind:'o',at:[200,55],d:'M200 55 L540 55',t0:600,dur:2600},
+      {lab:'C',kind:'c',at:C,d:'M200 160 L275 160 L268 156',t0:650,dur:1400},
+      {lab:'WR',kind:'o',at:[200,215],d:'M200 215 L300 228 L465 252',t0:600,dur:2400},
+      {lab:'WR',kind:'o',at:[200,270],d:'M200 270 L282 270 L272 266',t0:600,dur:1300},
+      {lab:'D',kind:'d',at:[285,55],d:'M285 55 L560 58',t0:900,dur:2500},
+      {lab:'D',kind:'d',at:[320,150],d:'M320 150 L295 156',t0:1000,dur:1200},
+      {lab:'D',kind:'d',at:[490,120],d:'M490 120 L520 86',t0:1000,dur:1800},
+      {lab:'D',kind:'d',at:[350,245],d:'M350 245 L300 262',t0:1300,dur:900}],
+    snap:{from:'200 160',to:'130 160',t0:300,dur:350},
+    throw:{d:'M130 160 Q300 120 462 250',t0:2400,dur:800},
+    space:{cx:455,cy:245,rx:60,ry:36,t0:1900},
+    labels:[{text:'수비가 앞으로 나와서 빈 뒤',x:455,y:198,size:20,t0:2800}] }
+};
+const plays={};
+document.querySelectorAll('svg[data-play]').forEach(svg=>{ const k=svg.dataset.play; if(SPECS[k]) plays[k]=makePlay(svg,SPECS[k]); });
+
+go(0);
+</script>
+</body>
+</html>
